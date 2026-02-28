@@ -1,0 +1,15 @@
+# Python / caches
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Poetry venv
+.venv/
+
+# VS Code
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+
