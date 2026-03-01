@@ -13,3 +13,10 @@ __pycache__/
 Thumbs.db
 .DS_Store
 
+
+# EnKF experiment outputs
+correction_v1_ensemble_size/
+
+
+# pickle / numpy outputs
+*.pkl
