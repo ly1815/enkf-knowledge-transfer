@@ -14,9 +14,13 @@ Thumbs.db
 .DS_Store
 
 
-# EnKF experiment outputs
+# EnKF experiment outputs (old structure)
 correction_v1_ensemble_size/
+solve_blowup/
+param_mean_sensitivity/
 
+# All run outputs (pkl + figures) — version-controlled via config.py RUN_NAME only
+results/
 
-# pickle / numpy outputs
-*.pkl
+# Temporary extraction file
+nb_source.py
