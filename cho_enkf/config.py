@@ -12,7 +12,7 @@ results/{RUN_NAME}/ with one subfolder per script:
 from pathlib import Path
 
 # ─── Run identity ─────────────────────────────────────────────────────────────
-RUN_NAME = "run_v1"
+RUN_NAME = "run_v2"
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
