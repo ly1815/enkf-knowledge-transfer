@@ -3,19 +3,21 @@ config.py
 =========
 Single source of truth for all configuration, constants, and tuning parameters.
 
-Outputs are organised by script under results/:
-  results/01_ensemble_tuning/  results/02_longterm_pred/
-  results/03_irregular/        results/04_sensitivity/
-  results/05_comparisons/
-Each script calls io_utils.set_dirs() to point to its own subfolder.
+Change RUN_NAME to version a new experiment. Outputs are organised under
+results/{RUN_NAME}/ with one subfolder per script:
+  results/run_v1/01_ensemble_tuning/pkl|figures/
+  results/run_v1/02_longterm_pred/pkl|figures/  ...
 """
 
 from pathlib import Path
 
+# ─── Run identity ─────────────────────────────────────────────────────────────
+RUN_NAME = "run_v1"
+
 # ─── Paths ───────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR     = PROJECT_ROOT / "data"
-RESULTS_DIR  = PROJECT_ROOT / "results"
+RESULTS_DIR  = PROJECT_ROOT / "results" / RUN_NAME
 
 # ─── Dataset file names (relative to DATA_DIR) ───────────────────────────────
 DATASET_FILES = [
@@ -197,7 +199,7 @@ DATASET_NOISE_VARIANCES = {
         "process_var": {'Xv': 2.0e+19, 'mAb': 1.0e+05, 'Glc': 9.6e+01, 'Amm': 6.0,
                         'Gln': 4.0, 'Lac': 5.0, 'Glu': 1.6, 'Asn': 3.0},
         "obs_var":     {'Xv': 3e+17, 'mAb': 1.5e+03, 'Glc': 5.0, 'Amm': 0.1,
-                        'Gln': 0.1, 'Lac': 0.2, 'Glu': 0.04, 'Asn': 0.025},
+                        'Gln': 0.1, 'Lac': 0.2, 'Glu': 0.04, 'Asn': 0.025}, #initial 'Glu' noise 0.004
     },
     "CHO_GS46_F_all": {
         "process_var": {'Xv': 2.0e+19, 'mAb': 1.0e+05, 'Glc': 9.6e+01, 'Amm': 6.0,

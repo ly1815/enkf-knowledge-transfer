@@ -9,15 +9,10 @@ Addresses Reviewer 2, point 5:
    to conventional reparametrisation, but does not provide quantitative
    comparisons."
 
-Prerequisites
--------------
-- results/{RUN_NAME}/pkl/ensemble_tuning.pkl     (from script 01)
-- results/{RUN_NAME}/pkl/simulation_results.pkl  (from script 01)
-- results/{RUN_NAME}/pkl/volume_results.pkl      (from script 01)
-- cho_enkf/config.py: CHO_GS46_F_C_Inv_PARAMETERS fully filled in
+Standalone — no dependency on other scripts' pkl files.
 
 Run from project root:
-    poetry run python scripts/06_comparisons.py
+    poetry run python scripts/05_comparisons.py
 """
 
 import sys
@@ -28,24 +23,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from cho_enkf.config import (
     RESULTS_DIR,
-    DATA_DIR, DATASET_FILES, STATE_NAMES, AXIS_NAMES,
+    DATA_DIR, DATASET_FILES, INITIAL_VOLUMES, STATE_NAMES, AXIS_NAMES,
+    MEAN_PARAMETERS, PARAMETERS_ENSEMBLE_COVARIANCE,
+    DATASET_NOISE_VARIANCES, KQ_DICT, KR_DICT,
     BEST_ENSEMBLE_SIZES, DATASET_COLOURS, DATASET_MARKERS,
-    CUSTOM_TITLES, MEAN_PARAMETERS,
-    CHO_GS46_F_C_Inv_PARAMETERS,
+    CUSTOM_TITLES, CHO_GS46_F_C_Inv_PARAMETERS,
 )
 from cho_enkf.data_loader import load_datasets
-from cho_enkf.model import simulate_all_datasets
-from cho_enkf.analysis import compute_r2
-from cho_enkf.io_utils import set_dirs, ensure_dirs, load_pkl, fig_path
+from cho_enkf.model import compute_volume_results, simulate_all_datasets
+from cho_enkf.enkf import run_enkf_with_tuning
+from cho_enkf.io_utils import set_dirs, ensure_dirs, has_results, save_pkl, load_pkl, fig_path
 from cho_enkf import plotting as pl
 
-S01_PKL = RESULTS_DIR / "01_ensemble_tuning" / "pkl"
 S05_PKL = RESULTS_DIR / "05_comparisons" / "pkl"
 S05_FIG = RESULTS_DIR / "05_comparisons" / "figures"
 set_dirs(S05_PKL, S05_FIG)
 ensure_dirs()
 
-DS = 'CHO_GS46_F_C_Inv'
+DS     = 'CHO_GS46_F_C_Inv'
 BEST_N = BEST_ENSEMBLE_SIZES[DS]   # 75
 
 print("=" * 60)
@@ -54,33 +49,58 @@ print(f"  Dataset : {DS}")
 print(f"  Ensemble: {BEST_N}")
 print("=" * 60)
 
-# ── Load data and pre-computed results ────────────────────────────────────────
-datasets           = load_datasets(DATA_DIR, DATASET_FILES)
-volume_results     = load_pkl('volume_results.pkl',     subdir=S01_PKL)
-simulation_results = load_pkl('simulation_results.pkl', subdir=S01_PKL)
-ensemble_tuning    = load_pkl('ensemble_tuning.pkl',    subdir=S01_PKL)
+datasets = load_datasets(DATA_DIR, DATASET_FILES)
 
-# ── EnKF trajectory (full data, best ensemble) ───────────────────────────────
-enkf_traj = ensemble_tuning[DS][BEST_N]          # (n_steps, n_states)
+LOAD_FROM_PKL = has_results()
+print(f"\n{'Loading from pkl' if LOAD_FROM_PKL else 'No existing results — running from scratch'} ...")
 
-# ── Nominal (Kotidis) simulation ─────────────────────────────────────────────
-nominal_sim = simulation_results[DS]['full_simulation']   # (n_steps, n_states)
+if LOAD_FROM_PKL:
+    enkf_traj   = load_pkl('enkf_traj.pkl')
+    nominal_sim = load_pkl('nominal_sim.pkl')
+    reparam_sim = load_pkl('reparam_sim.pkl')
+else:
+    # ── Volume integration ────────────────────────────────────────────────────
+    print("\nComputing volume profile ...")
+    volume_results = compute_volume_results(
+        {DS: datasets[DS]}, {DS: INITIAL_VOLUMES[DS]}
+    )
+    save_pkl(volume_results, 'volume_results.pkl')
 
-# ── Reparametrised open-loop simulation ──────────────────────────────────────
-print("\nRunning reparametrised simulation ...")
-reparam_results = simulate_all_datasets(
-    {DS: datasets[DS]},
-    {DS: volume_results[DS]},
-    CHO_GS46_F_C_Inv_PARAMETERS,
-)
-reparam_sim = reparam_results[DS]['full_simulation']      # (n_steps, n_states)
+    # ── Nominal (Kotidis) simulation ──────────────────────────────────────────
+    print("Running nominal simulation ...")
+    nominal_results = simulate_all_datasets(
+        {DS: datasets[DS]}, {DS: volume_results[DS]}, MEAN_PARAMETERS
+    )
+    nominal_sim = nominal_results[DS]['full_simulation']
+    save_pkl(nominal_sim, 'nominal_sim.pkl')
 
-# ── RMSE comparison ──────────────────────────────────────────────────────────
+    # ── EnKF (full data, best ensemble size) ──────────────────────────────────
+    print(f"Running EnKF (ensemble size {BEST_N}) ...")
+    (enkf_tuning, _, _, _, _, _, _, _, _) = run_enkf_with_tuning(
+        {DS: datasets[DS]},
+        {DS: DATASET_NOISE_VARIANCES[DS]},
+        {DS: volume_results[DS]},
+        [BEST_N], MEAN_PARAMETERS,
+        PARAMETERS_ENSEMBLE_COVARIANCE,
+        {DS: KQ_DICT[DS]}, {DS: KR_DICT[DS]},
+    )
+    enkf_traj = enkf_tuning[DS][BEST_N]
+    save_pkl(enkf_traj, 'enkf_traj.pkl')
+
+    # ── Reparametrised open-loop simulation ───────────────────────────────────
+    print("Running reparametrised simulation ...")
+    reparam_results = simulate_all_datasets(
+        {DS: datasets[DS]}, {DS: volume_results[DS]}, CHO_GS46_F_C_Inv_PARAMETERS
+    )
+    reparam_sim = reparam_results[DS]['full_simulation']
+    save_pkl(reparam_sim, 'reparam_sim.pkl')
+
+# ── RMSE comparison ───────────────────────────────────────────────────────────
 exp_meas = datasets[DS]['exp_meas']
-exp_vals = exp_meas.iloc[:, 1:9].values          # (n_obs, n_states)
+exp_vals = exp_meas.iloc[:, 1:9].values
 dt_kf    = 0.01
 
-time_hours = exp_meas['Time (hours)'].values
+time_hours   = exp_meas['Time (hours)'].values
 time_indices = [round(t / dt_kf) for t in time_hours]
 time_indices = [min(idx, enkf_traj.shape[0] - 1) for idx in time_indices]
 
@@ -95,7 +115,7 @@ print("-" * len(header))
 
 overall_enkf, overall_reparam, overall_nominal = [], [], []
 for i, sname in enumerate(STATE_NAMES):
-    obs = exp_vals[:, i]
+    obs   = exp_vals[:, i]
     valid = ~np.isnan(obs)
     if not valid.any():
         continue
@@ -126,4 +146,4 @@ pl.plot_enkf_vs_reparametrised(
     save_path=fig_path("enkf_vs_reparametrised.png"),
 )
 
-print("\nStep 5 complete. Figure saved to results/{RUN_NAME}/figures/")
+print(f"\nStep 5 complete.")

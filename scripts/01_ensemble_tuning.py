@@ -25,7 +25,7 @@ from cho_enkf.config import (
 from cho_enkf.data_loader import load_datasets
 from cho_enkf.model import compute_volume_results, simulate_all_datasets
 from cho_enkf.enkf import run_enkf_with_tuning
-from cho_enkf.io_utils import set_dirs, ensure_dirs, save_pkl, load_pkl, fig_path
+from cho_enkf.io_utils import set_dirs, ensure_dirs, init_run_notes, has_results, save_pkl, load_pkl, fig_path
 from cho_enkf import plotting as pl
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
@@ -33,6 +33,7 @@ S01_PKL = RESULTS_DIR / "01_ensemble_tuning" / "pkl"
 S01_FIG = RESULTS_DIR / "01_ensemble_tuning" / "figures"
 set_dirs(S01_PKL, S01_FIG)
 ensure_dirs()
+init_run_notes(RESULTS_DIR)
 
 print("=" * 60)
 print("Step 1: Ensemble Tuning")
@@ -42,7 +43,8 @@ print("=" * 60)
 datasets = load_datasets(DATA_DIR, DATASET_FILES)
 
 # ── Load saved results (skip re-running simulation) ───────────────────────────
-LOAD_FROM_PKL = True  # set False to re-run from scratch
+LOAD_FROM_PKL = has_results()
+print(f"\n{'Loading from pkl' if LOAD_FROM_PKL else 'No existing results — running from scratch'} ...")
 
 if LOAD_FROM_PKL:
     print("\nLoading saved results from pkl ...")

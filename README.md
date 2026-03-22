@@ -41,8 +41,8 @@ BiotechBioeng/
 │   ├── 01_ensemble_tuning.py   # Load data → run EnKF sweep → save pkl
 │   ├── 02_longterm_pred.py     # Long-term forecasting with best ensemble size
 │   ├── 03_irregular.py         # EnKF with 48/72 h irregular measurements
-│   ├── 04_sensitivity.py       # Prior width + ±20% parameter sensitivity
-│   └── 05_figures.py           # Load all pkl → generate all publication figures
+│   ├── 04_sensitivity.py       # Prior width + ±% parameter sensitivity
+│   └── 05_comparisons.py       # EnKF vs reparametrised model comparison
 │
 ├── data/                       # CHO experimental datasets (Excel)
 │   ├── CHO_T127_flask_PMJ.xlsx
@@ -53,11 +53,23 @@ BiotechBioeng/
 │   └── CHO_GS46_F_all_pl40.xlsx
 │
 ├── results/                    # Generated outputs (gitignored)
-│   └── run_v1/
-│       ├── pkl/                # All intermediate pickle files
-│       │   └── sensitivity/    # Sensitivity analysis pickles
-│       └── figures/            # All PNG figures
-│           └── sensitivity/    # Sensitivity figures
+│   └── {RUN_NAME}/
+│       ├── run_notes.txt       # Auto-created on first run — fill in manually
+│       ├── 01_ensemble_tuning/
+│       │   ├── pkl/
+│       │   └── figures/
+│       ├── 02_longterm_pred/
+│       │   ├── pkl/
+│       │   └── figures/
+│       ├── 03_irregular/
+│       │   ├── pkl/
+│       │   └── figures/
+│       ├── 04_sensitivity/
+│       │   ├── pkl/
+│       │   └── figures/
+│       └── 05_comparisons/
+│           ├── pkl/
+│           └── figures/
 │
 ├── original.ipynb              # Original monolithic notebook (reference only)
 ├── pyproject.toml
@@ -95,10 +107,10 @@ Change this string to version a new experiment. Old results are preserved.
 
 ### 3. Run the pipeline
 
-Each script is independent and numbered. Run them in order, or skip steps by loading pre-computed pkl files.
+Each script saves results to its own subfolder. Set `LOAD_FROM_PKL = True` (default) to skip recomputation and regenerate figures only.
 
 ```bash
-# Step 1 (~2–4 h depending on hardware): ensemble tuning
+# Step 1 (~2–4 h): ensemble tuning
 poetry run python scripts/01_ensemble_tuning.py
 
 # Step 2 (~30–60 min): long-term prediction with best ensemble size
@@ -107,20 +119,27 @@ poetry run python scripts/02_longterm_pred.py
 # Step 3 (~30–60 min): irregular measurement schedule
 poetry run python scripts/03_irregular.py
 
-# Step 4 (~2–4 h): sensitivity analyses (prior width + ±20% params)
+# Step 4 (~2–4 h): sensitivity analyses (prior width + ±% params)
 poetry run python scripts/04_sensitivity.py
 
-# Step 5 (< 5 min): generate all publication figures
-poetry run python scripts/05_figures.py
+# Step 5 (< 5 min): EnKF vs reparametrised model comparison
+poetry run python scripts/05_comparisons.py
 ```
 
-> **Tip**: Steps 1–4 are compute-heavy. Run them once. Step 5 can be re-run repeatedly
-> to adjust figure aesthetics without re-running any EnKF.
+> **Tip**: Each script has `LOAD_FROM_PKL = True` at the top. With this set, scripts load
+> saved pkl files and skip all computation — useful for regenerating figures without re-running the EnKF.
 
 ### 4. Find outputs
 
-All pickle files → `results/run_v1/pkl/`
-All figures → `results/run_v1/figures/`
+```
+results/{RUN_NAME}/
+├── run_notes.txt               # Fill in to document what changed in this run
+├── 01_ensemble_tuning/pkl|figures/
+├── 02_longterm_pred/pkl|figures/
+├── 03_irregular/pkl|figures/
+├── 04_sensitivity/pkl|figures/
+└── 05_comparisons/pkl|figures/
+```
 
 ---
 
@@ -166,7 +185,7 @@ Each Excel file contains three sheets: `schedule` (feed schedule), `feed` (feed 
 | `DATASET_NOISE_VARIANCES` | Process (Q) and observation (R) noise per dataset |
 | `KQ_DICT` / `KR_DICT` | Scaling factors for Q and R matrices |
 | `PRIOR_WIDTH_SCALES` | Scales tested in sensitivity analysis |
-| `PARAM_SENS_PERTURBATION` | Fraction for ±% sensitivity (default 0.20) |
+| `PARAM_SENS_PERTURBATIONS` | Fractions for ±% sensitivity (default `[0.10, 0.20, 0.30]`) |
 
 ---
 
