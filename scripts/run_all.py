@@ -8,12 +8,17 @@ Run from project root:
     poetry run python scripts/run_all.py
 """
 
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+# Use non-interactive backend so plt.show() is a no-op in subprocesses
+# (figures are still saved to disk)
+BATCH_ENV = {**os.environ, "MPLBACKEND": "Agg"}
 
 SCRIPTS = [
     "scripts/01_ensemble_tuning.py",
@@ -28,7 +33,7 @@ def run_script(script):
     print(f"Running: {script}")
     print("=" * 60)
     start = time.time()
-    result = subprocess.run([sys.executable, script], cwd=ROOT)
+    result = subprocess.run([sys.executable, script], cwd=ROOT, env=BATCH_ENV)
     elapsed = time.time() - start
     if result.returncode != 0:
         print(f"\nERROR: {script} failed. Stopping pipeline.")

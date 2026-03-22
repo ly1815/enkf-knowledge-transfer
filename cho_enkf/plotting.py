@@ -531,6 +531,13 @@ def plot_prior_width_state_profiles(prior_width_sim, prior_width_scales,
 
         for i, (state, ylabel) in enumerate(zip(state_names, axis_names)):
             ax = axes[i]
+            # Compute ylim from 1× baseline scale
+            baseline_1x = prior_width_sim[1.0][ds_name][:, i]
+            y_min = float(np.nanmin(baseline_1x))
+            y_max = float(np.nanmax(baseline_1x))
+            y_pad = (y_max - y_min) * 0.05 if y_max != y_min else abs(y_max) * 0.05
+            ax.set_ylim(y_min - y_pad, y_max + y_pad)
+
             for scale in prior_width_scales:
                 sim     = prior_width_sim[scale][ds_name]
                 t_sim   = np.linspace(0, len(sim) * 0.01, len(sim))
@@ -608,9 +615,17 @@ def plot_param_sensitivity_comparison(datasets, perturb_sims, sim_baseline,
         fig, axes = plt.subplots(2, 4, figsize=(22, 11))
         axes = axes.ravel()
 
+        baseline_traj = sim_baseline[ds_name]
         for i, sname in enumerate(state_names):
             ax = axes[i]
             ax.set_title(sub_labels[i], fontsize=14, fontweight='bold', loc='left')
+
+            # Set ylim to 1× baseline scale
+            b = baseline_traj[:, i]
+            y_min = float(np.nanmin(b))
+            y_max = float(np.nanmax(b))
+            y_pad = (y_max - y_min) * 0.05 if y_max != y_min else abs(y_max) * 0.05
+            ax.set_ylim(y_min - y_pad, y_max + y_pad)
 
             # Positive perturbations
             for p in perturbations:
