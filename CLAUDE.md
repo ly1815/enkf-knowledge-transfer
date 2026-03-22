@@ -17,11 +17,11 @@ BiotechBioeng/
 │   ├── plotting.py             # All publication figures
 │   └── io_utils.py             # save_pkl / load_pkl wrappers
 ├── scripts/                    # Numbered pipeline — run in order
-│   ├── 01_ensemble_tuning.py
-│   ├── 02_longterm_pred.py
-│   ├── 03_irregular.py
-│   ├── 04_sensitivity.py
-│   └── 05_figures.py           # Decoupled from computation; re-run freely
+│   ├── 01_ensemble_tuning.py   # Figs A (tuning), B (T127 overlay), C (GS46 overlay)
+│   ├── 02_longterm_pred.py     # Figs D (long-term), E+F (params), G (correlation), R²/conv tables
+│   ├── 03_irregular.py         # Fig K (irregular profiles)
+│   ├── 04_sensitivity.py       # Figs H+I (prior width), J (param sensitivity)
+│   └── 05_comparisons.py       # EnKF vs reparametrised model (Reviewer 2, point 5)
 ├── data/                       # Input Excel datasets (never modify)
 ├── results/{RUN_NAME}/         # All outputs (gitignored)
 │   ├── pkl/                    # Pickle files
@@ -47,7 +47,7 @@ poetry run python scripts/01_ensemble_tuning.py   # ~2–4 h
 poetry run python scripts/02_longterm_pred.py      # ~30–60 min
 poetry run python scripts/03_irregular.py          # ~30–60 min
 poetry run python scripts/04_sensitivity.py        # ~2–4 h
-poetry run python scripts/05_figures.py            # < 5 min
+poetry run python scripts/05_comparisons.py        # < 5 min (requires step 1 pkl)
 
 # Add a dependency
 poetry add <package>
@@ -58,7 +58,7 @@ poetry add <package>
 - Change `RUN_NAME` in `cho_enkf/config.py` to version a new experiment
 - All pkl files → `results/{RUN_NAME}/pkl/`
 - All figures → `results/{RUN_NAME}/figures/`
-- `05_figures.py` loads pkl and regenerates figures — no EnKF re-run needed
+- Each script generates its own figures immediately after computation
 
 ## Data
 
@@ -67,9 +67,16 @@ Input Excel files in `data/`:
 - `CHO_GS46_F_*` — Cell Line B (GS46 strain): different feed strategies
 - Each file has sheets: `schedule`, `feed`, `exp_meas`
 
+## Reviewer Comments Context (Reviewer 2)
+
+The manuscript is under revision. Points 1–4 and 6–7 are addressed in code and text. Point 5 (quantitative comparison vs reparametrisation) is addressed by `05_comparisons.py`:
+- Compares EnKF (CHO_GS46_F_C_Inv, ensemble size 75, full data) against an open-loop simulation using `CHO_GS46_F_C_Inv_PARAMETERS` (dataset-specific reparametrised parameters in `config.py`)
+- The `documents/` folder (paper, reviewer comments) is gitignored
+
 ## Gotchas
 
 - `results/` is gitignored — pkl files and figures do not sync via git
-- `original.ipynb` is the legacy monolithic notebook; the `cho_enkf` package is canonical
+- `original.ipynb` is the legacy monolithic notebook in `old_notebooks/`; the `cho_enkf` package is canonical
 - No test suite — research project
 - Scripts must be run from the project root (they add the root to `sys.path`)
+- `CHO_GS46_F_C_Inv_PARAMETERS` in `config.py` holds dataset-specific reparametrised parameters (from Kotidis 2019 strategic framework) used in `06_comparisons.py`

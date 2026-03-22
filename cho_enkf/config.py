@@ -3,23 +3,19 @@ config.py
 =========
 Single source of truth for all configuration, constants, and tuning parameters.
 
-Change RUN_NAME to version a new experiment without touching any other file.
-All outputs (pkl files + figures) are stored under results/RUN_NAME/.
+Outputs are organised by script under results/:
+  results/01_ensemble_tuning/  results/02_longterm_pred/
+  results/03_irregular/        results/04_sensitivity/
+  results/05_comparisons/
+Each script calls io_utils.set_dirs() to point to its own subfolder.
 """
 
 from pathlib import Path
 
-# ─── Run identity ────────────────────────────────────────────────────────────
-RUN_NAME = "run_v1"
-
 # ─── Paths ───────────────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR     = PROJECT_ROOT / "data"
-RESULTS_DIR  = PROJECT_ROOT / "results" / RUN_NAME
-PKL_DIR      = RESULTS_DIR / "pkl"
-FIG_DIR      = RESULTS_DIR / "figures"
-SENS_PKL_DIR = PKL_DIR / "sensitivity"
-SENS_FIG_DIR = FIG_DIR / "sensitivity"
+RESULTS_DIR  = PROJECT_ROOT / "results"
 
 # ─── Dataset file names (relative to DATA_DIR) ───────────────────────────────
 DATASET_FILES = [
@@ -121,6 +117,34 @@ MEAN_PARAMETERS = {
     'YmAb_mu':   3.38956e-9,
 }
 
+# Parameter reparametrization for GS46-F-C-Inv taken from Strategic Framework for Parameterization of Cell Culture Models (Kotidis et al. 2019)
+CHO_GS46_F_C_Inv_PARAMETERS = {
+    'mu_max':    6.96e-2,
+    'mu_d_max':  0.015,
+    'Kglc':      14.0378,
+    'Kasn':      2.62371,
+    'KIlac':     1000,
+    'KIamm':     3.16935,
+    'Kd_amm':    14.2830,
+    'm_lac':     1.87253e-10,
+    'm_glc':     3.35e-11,
+    'Lac_max_1': 18.55,
+    'Lac_max_2': 7.14,
+    'Yx_glc':    1.0115e9,
+    'Yx_gln':    1.85e10,
+    'Yx_glu':    5.68e9,
+    'Yx_lac':    5.45539e7,
+    'Yx_amm':    4.66e9,
+    'Yx_asn':    8.69e8,
+    'Yx_asp':    1.06e9,
+    'Ygln_amm':  0.104524,
+    'Ylac_glc':  1.56,
+    'Yasp_asn':  0.126,
+    'Yasn_asp':  0.1,
+    'm_mAb':     1.31e-9,   # mg/cell/h
+    'YmAb_mu':   3.38956e-9,
+}
+
 # Parameter ensemble prior covariance (std-dev widths)
 PARAMETERS_ENSEMBLE_COVARIANCE = {
     'mu_max':    0.02,
@@ -173,7 +197,7 @@ DATASET_NOISE_VARIANCES = {
         "process_var": {'Xv': 2.0e+19, 'mAb': 1.0e+05, 'Glc': 9.6e+01, 'Amm': 6.0,
                         'Gln': 4.0, 'Lac': 5.0, 'Glu': 1.6, 'Asn': 3.0},
         "obs_var":     {'Xv': 3e+17, 'mAb': 1.5e+03, 'Glc': 5.0, 'Amm': 0.1,
-                        'Gln': 0.1, 'Lac': 0.2, 'Glu': 0.004, 'Asn': 0.025},
+                        'Gln': 0.1, 'Lac': 0.2, 'Glu': 0.04, 'Asn': 0.025},
     },
     "CHO_GS46_F_all": {
         "process_var": {'Xv': 2.0e+19, 'mAb': 1.0e+05, 'Glc': 9.6e+01, 'Amm': 6.0,
@@ -246,7 +270,7 @@ DATASET_MARKERS = {
 
 # ─── Sensitivity analysis ────────────────────────────────────────────────────
 PRIOR_WIDTH_SCALES    = [0.5, 1.0, 1.5, 2.0]
-PARAM_SENS_PERTURBATION = 0.20   # ±20 %
+PARAM_SENS_PERTURBATIONS = [0.10, 0.20, 0.30]   # ±10%, ±20%, ±30%
 
 # Long-term forecast indices (measurement update number from which to start forecast)
 FORECAST_INDICES = {

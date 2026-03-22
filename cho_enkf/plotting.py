@@ -25,8 +25,7 @@ def _savefig(fig, save_path, dpi=300):
         save_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_path, dpi=dpi, bbox_inches='tight')
         print(f"Saved: {save_path}")
-    else:
-        plt.show()
+    plt.show()
     plt.close(fig)
 
 
@@ -484,11 +483,14 @@ def plot_posterior_param_correlation(corr_matrices, best_ensemble_sizes,
 # ─── Prior width sensitivity ─────────────────────────────────────────────────
 
 def plot_prior_width_sensitivity_rmse(prior_width_rmse, prior_width_scales,
-                                       best_ensemble_sizes, save_path=None):
+                                       best_ensemble_sizes, save_path=None,
+                                       custom_titles=None):
     datasets_list = list(best_ensemble_sizes.keys())
     x = np.arange(len(datasets_list))
     width = 0.25
     colors = ["#4C72B0", "#55A868", "#C44E52", "#DD8452"]
+    x_labels = [custom_titles.get(ds, ds) if custom_titles else ds
+                for ds in datasets_list]
 
     fig, ax = plt.subplots(figsize=(12, 5))
     for i, scale in enumerate(prior_width_scales):
@@ -501,7 +503,7 @@ def plot_prior_width_sensitivity_rmse(prior_width_rmse, prior_width_scales,
                label=f"{scale}× prior width",
                color=colors[i % len(colors)], alpha=0.85)
     ax.set_xticks(x)
-    ax.set_xticklabels(datasets_list, rotation=25, ha="right", fontsize=9)
+    ax.set_xticklabels(x_labels, rotation=25, ha="right", fontsize=9)
     ax.set_ylabel("Mean RMSE")
     ax.set_title("Prior Width Sensitivity: Effect on EnKF RMSE")
     ax.legend(title="Prior width scale")
@@ -514,7 +516,7 @@ def plot_prior_width_state_profiles(prior_width_sim, prior_width_scales,
                                      best_ensemble_sizes, datasets,
                                      state_names, axis_names,
                                      scale_colors=None, scale_labels=None,
-                                     save_dir=None):
+                                     custom_titles=None, save_dir=None):
     if scale_colors is None:
         scale_colors = {s: c for s, c in zip(prior_width_scales,
                         ["#4C72B0", "#55A868", "#C44E52", "#DD8452"])}
@@ -550,40 +552,57 @@ def plot_prior_width_state_profiles(prior_width_sim, prior_width_scales,
             ax.grid(linestyle="--", alpha=0.4)
 
         handles, lbls = axes[0].get_legend_handles_labels()
-        fig.legend(handles, lbls, loc="lower center", ncol=4, fontsize=10,
-                   frameon=True, bbox_to_anchor=(0.5, -0.04))
-        fig.suptitle(f"Prior Width Sensitivity — {ds_name}", fontsize=13,
+        fig.legend(handles, lbls, loc="lower center", ncol=len(prior_width_scales) + 1,
+                   fontsize=10, frameon=True, bbox_to_anchor=(0.5, -0.04))
+        title = custom_titles.get(ds_name, ds_name) if custom_titles else ds_name
+        fig.suptitle(f"Prior Width Sensitivity — {title}", fontsize=13,
                      fontweight="bold")
         plt.tight_layout(rect=[0, 0.04, 1, 1])
         sp = (Path(save_dir) / f"prior_width_profiles_{ds_name}.png") if save_dir else None
         _savefig(fig, sp, dpi=150)
 
 
-# ─── Parameter mean sensitivity (±20%) ───────────────────────────────────────
+# ─── Parameter mean sensitivity (±%) ─────────────────────────────────────────
 
-SENS_COLOURS = {'+20%': 'royalblue', 'Baseline': 'seagreen', '-20%': 'tomato'}
-SENS_LS      = {'+20%': '--',        'Baseline': '-',         '-20%': ':'}
-SENS_LW      = 2.5
+# Colours for positive perturbations (blue shades, light→dark) and
+# negative perturbations (red shades, light→dark); up to 4 levels each.
+_PLUS_COLOURS  = ['#90CAF9', '#2196F3', '#0D47A1', '#01002E']
+_MINUS_COLOURS = ['#EF9A9A', '#EF5350', '#B71C1C', '#4A0000']
+SENS_LW        = 2.5
 
 
-def plot_param_sensitivity_comparison(datasets, sim_plus20, sim_baseline, sim_minus20,
-                                       state_names, axis_names, dataset_ensemble_sizes,
+def plot_param_sensitivity_comparison(datasets, perturb_sims, sim_baseline,
+                                       perturbations, state_names, axis_names,
+                                       dataset_ensemble_sizes,
                                        dataset_colours, dataset_markers,
                                        save_dir=None, dt_kf=0.01):
+    """
+    perturb_sims : {p: {'plus': sim_dict, 'minus': sim_dict}}
+                   where p is the fractional perturbation (e.g. 0.10, 0.20, 0.30)
+    perturbations: ordered list of p values (same order used for colour mapping)
+    """
     sns.set(style='white', context='talk')
     sub_labels = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)']
-    cases = [('+20%', sim_plus20), ('Baseline', sim_baseline), ('-20%', sim_minus20)]
+
+    # Build colour / linestyle maps keyed by (sign, p)
+    plus_colours  = {p: _PLUS_COLOURS[i]  for i, p in enumerate(perturbations)}
+    minus_colours = {p: _MINUS_COLOURS[i] for i, p in enumerate(perturbations)}
+    baseline_colour = 'seagreen'
+
+    pct_labels = {p: f"{int(p * 100)}%" for p in perturbations}
 
     for ds_name in dataset_ensemble_sizes:
         if ds_name not in sim_baseline:
             continue
         exp_meas = datasets[ds_name]['exp_meas']
         t_meas   = exp_meas['Time (hours)'].values / 24.0
-        n_steps  = max(sim_plus20[ds_name].shape[0],
-                       sim_baseline[ds_name].shape[0],
-                       sim_minus20[ds_name].shape[0])
-        t_sim    = np.arange(n_steps) * dt_kf / 24.0
-        t_max    = max(t_sim[-1], t_meas.max() if t_meas.size else 0)
+
+        all_n = [sim_baseline[ds_name].shape[0]] + [
+            perturb_sims[p][sign][ds_name].shape[0]
+            for p in perturbations for sign in ('plus', 'minus')
+        ]
+        t_sim     = np.arange(max(all_n)) * dt_kf / 24.0
+        t_max     = max(t_sim[-1], t_meas.max() if t_meas.size else 0)
         day_ticks = np.arange(0, int(np.ceil(t_max)) + 1, 2)
 
         fig, axes = plt.subplots(2, 4, figsize=(22, 11))
@@ -592,11 +611,27 @@ def plot_param_sensitivity_comparison(datasets, sim_plus20, sim_baseline, sim_mi
         for i, sname in enumerate(state_names):
             ax = axes[i]
             ax.set_title(sub_labels[i], fontsize=14, fontweight='bold', loc='left')
-            for label, sim_dict in cases:
-                traj = sim_dict[ds_name]
+
+            # Positive perturbations
+            for p in perturbations:
+                traj = perturb_sims[p]['plus'][ds_name]
                 tax  = np.arange(traj.shape[0]) * dt_kf / 24.0
-                ax.plot(tax, traj[:, i], color=SENS_COLOURS[label],
-                        linestyle=SENS_LS[label], linewidth=SENS_LW, label=label)
+                ax.plot(tax, traj[:, i], color=plus_colours[p],
+                        linestyle='--', linewidth=SENS_LW)
+
+            # Baseline
+            traj = sim_baseline[ds_name]
+            tax  = np.arange(traj.shape[0]) * dt_kf / 24.0
+            ax.plot(tax, traj[:, i], color=baseline_colour,
+                    linestyle='-', linewidth=SENS_LW)
+
+            # Negative perturbations
+            for p in perturbations:
+                traj = perturb_sims[p]['minus'][ds_name]
+                tax  = np.arange(traj.shape[0]) * dt_kf / 24.0
+                ax.plot(tax, traj[:, i], color=minus_colours[p],
+                        linestyle=':', linewidth=SENS_LW)
+
             col = sname
             if f'{col}_std' in exp_meas.columns:
                 ax.errorbar(t_meas, exp_meas[col].values,
@@ -604,13 +639,12 @@ def plot_param_sensitivity_comparison(datasets, sim_plus20, sim_baseline, sim_mi
                             fmt=dataset_markers[ds_name],
                             color=dataset_colours[ds_name],
                             markeredgecolor='black', ecolor='black',
-                            elinewidth=1.5, capsize=3, markersize=7,
-                            label='Experiment')
+                            elinewidth=1.5, capsize=3, markersize=7)
             else:
                 ax.scatter(t_meas, exp_meas[col].values,
                            s=60, color=dataset_colours[ds_name],
                            edgecolor='black', marker=dataset_markers[ds_name],
-                           label='Experiment', zorder=5)
+                           zorder=5)
             ax.set_xlabel('Time (days)', fontsize=12, fontweight='bold')
             ax.set_ylabel(axis_names[i], fontsize=11, fontweight='bold')
             ax.set_xticks(day_ticks)
@@ -618,28 +652,126 @@ def plot_param_sensitivity_comparison(datasets, sim_plus20, sim_baseline, sim_mi
             for spine in ax.spines.values():
                 spine.set_linewidth(1.5)
             ax.grid(True, alpha=0.25)
-            if ax.get_legend() is not None:
-                ax.get_legend().remove()
 
-        legend_handles = [
-            Line2D([0], [0], color=SENS_COLOURS['+20%'], lw=SENS_LW, ls='--',
-                   label='EnKF +20% μ'),
-            Line2D([0], [0], color=SENS_COLOURS['Baseline'], lw=SENS_LW, ls='-',
-                   label='EnKF Baseline'),
-            Line2D([0], [0], color=SENS_COLOURS['-20%'], lw=SENS_LW, ls=':',
-                   label='EnKF −20% μ'),
+        legend_handles = []
+        for p in perturbations:
+            legend_handles.append(
+                Line2D([0], [0], color=plus_colours[p], lw=SENS_LW, ls='--',
+                       label=f'+{pct_labels[p]} μ'))
+        legend_handles.append(
+            Line2D([0], [0], color=baseline_colour, lw=SENS_LW, ls='-',
+                   label='Baseline'))
+        for p in perturbations:
+            legend_handles.append(
+                Line2D([0], [0], color=minus_colours[p], lw=SENS_LW, ls=':',
+                       label=f'−{pct_labels[p]} μ'))
+        legend_handles.append(
             Line2D([0], [0], marker=dataset_markers[ds_name],
                    color=dataset_colours[ds_name], markeredgecolor='black',
-                   markersize=8, linestyle='None', label='Experiment'),
-        ]
-        fig.legend(handles=legend_handles, loc='lower center', ncol=4,
+                   markersize=8, linestyle='None', label='Experiment'))
+
+        ncol = len(perturbations) * 2 + 2   # +percents, baseline, -percents, experiment
+        fig.legend(handles=legend_handles, loc='lower center', ncol=ncol,
                    bbox_to_anchor=(0.5, -0.02), fontsize=12, frameon=False,
                    prop={'weight': 'bold'})
-        fig.suptitle(f'{ds_name}: EnKF sensitivity to ±20% mean parameter perturbation',
+        pct_str = '/'.join(f'±{pct_labels[p]}' for p in perturbations)
+        fig.suptitle(f'{ds_name}: EnKF sensitivity to {pct_str} mean parameter perturbation',
                      fontsize=14, fontweight='bold', y=1.01)
         fig.tight_layout(rect=[0, 0.04, 1, 1])
         sp = (Path(save_dir) / f"param_sensitivity_{ds_name}.png") if save_dir else None
         _savefig(fig, sp, dpi=300)
+
+
+# ─── EnKF vs reparametrised model comparison ─────────────────────────────────
+
+def plot_enkf_vs_reparametrised(dataset, enkf_traj, reparam_sim, nominal_sim,
+                                 state_names, axis_names,
+                                 dataset_colour='darkorange',
+                                 dataset_marker='X',
+                                 custom_title=None,
+                                 save_path=None, dt_kf=0.01):
+    """
+    Compare EnKF state estimate against:
+      - open-loop simulation with reparametrised (dataset-specific) parameters
+      - open-loop nominal (Kotidis) simulation
+
+    Parameters
+    ----------
+    dataset      : dict with key 'exp_meas'
+    enkf_traj    : ndarray (n_steps, n_states)  — EnKF filtered trajectory
+    reparam_sim  : ndarray (n_steps, n_states)  — reparametrised open-loop
+    nominal_sim  : ndarray (n_steps, n_states)  — nominal Kotidis open-loop
+    """
+    sns.set(style='white', context='talk')
+    sub_labels = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)', '(g)', '(h)']
+
+    exp_meas  = dataset['exp_meas']
+    t_meas    = exp_meas['Time (hours)'].values / 24.0
+    n_steps   = max(enkf_traj.shape[0], reparam_sim.shape[0], nominal_sim.shape[0])
+    t_sim     = np.arange(n_steps) * dt_kf / 24.0
+    t_max     = max(t_sim[-1], t_meas.max() if t_meas.size else 0)
+    day_ticks = np.arange(0, int(np.ceil(t_max)) + 1, 2)
+
+    fig, axes = plt.subplots(2, 4, figsize=(22, 11))
+    axes = axes.ravel()
+
+    for i, (sname, ylabel) in enumerate(zip(state_names, axis_names)):
+        ax = axes[i]
+        ax.set_title(sub_labels[i], fontsize=14, fontweight='bold', loc='left')
+
+        # Nominal simulation
+        t_nom = np.arange(nominal_sim.shape[0]) * dt_kf / 24.0
+        ax.plot(t_nom, nominal_sim[:, i], color='grey', linestyle=':',
+                linewidth=2.0, label='Nominal model (Kotidis 2019)')
+
+        # Reparametrised open-loop
+        t_rep = np.arange(reparam_sim.shape[0]) * dt_kf / 24.0
+        ax.plot(t_rep, reparam_sim[:, i], color='royalblue', linestyle='--',
+                linewidth=2.5, label='Reparametrised model')
+
+        # EnKF filtered estimate
+        t_enkf = np.arange(enkf_traj.shape[0]) * dt_kf / 24.0
+        ax.plot(t_enkf, enkf_traj[:, i], color='seagreen', linestyle='-',
+                linewidth=2.5, label='EnKF estimate')
+
+        # Experimental data
+        std_col = f'{sname}_std'
+        if std_col in exp_meas.columns:
+            ax.errorbar(t_meas, exp_meas[sname].values,
+                        yerr=exp_meas[std_col].values,
+                        fmt=dataset_marker, color=dataset_colour,
+                        markeredgecolor='black', ecolor='black',
+                        elinewidth=1.5, capsize=3, markersize=7,
+                        label='Experiment')
+        else:
+            ax.scatter(t_meas, exp_meas[sname].values,
+                       s=60, color=dataset_colour,
+                       edgecolor='black', marker=dataset_marker,
+                       label='Experiment', zorder=5)
+
+        ax.set_xlabel('Time (days)', fontsize=12, fontweight='bold')
+        ax.set_ylabel(ylabel, fontsize=11, fontweight='bold')
+        ax.set_xticks(day_ticks)
+        ax.tick_params(axis='both', direction='in', length=4, width=1.5)
+        for spine in ax.spines.values():
+            spine.set_linewidth(1.5)
+        ax.grid(True, alpha=0.25)
+
+    legend_handles = [
+        Line2D([0], [0], color='grey',      lw=2.0, ls=':', label='Nominal model (Kotidis 2019)'),
+        Line2D([0], [0], color='royalblue', lw=2.5, ls='--', label='Reparametrised model'),
+        Line2D([0], [0], color='seagreen',  lw=2.5, ls='-',  label='EnKF estimate'),
+        Line2D([0], [0], marker=dataset_marker, color=dataset_colour,
+               markeredgecolor='black', markersize=8, linestyle='None', label='Experiment'),
+    ]
+    fig.legend(handles=legend_handles, loc='lower center', ncol=4,
+               bbox_to_anchor=(0.5, -0.02), fontsize=12, frameon=False,
+               prop={'weight': 'bold'})
+    title = custom_title or 'CHO_GS46_F_C_Inv'
+    fig.suptitle(f'{title}: EnKF vs Reparametrised Model vs Nominal Simulation',
+                 fontsize=14, fontweight='bold', y=1.01)
+    fig.tight_layout(rect=[0, 0.04, 1, 1])
+    _savefig(fig, save_path, dpi=300)
 
 
 # ─── Irregular measurement plots ─────────────────────────────────────────────
