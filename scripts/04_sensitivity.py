@@ -29,7 +29,7 @@ from cho_enkf.config import (
 )
 from cho_enkf.data_loader import load_datasets
 from cho_enkf.enkf import run_enkf_with_tuning, run_enkf_with_mean_params
-from cho_enkf.io_utils import set_dirs, ensure_dirs, save_pkl, load_pkl, fig_path
+from cho_enkf.io_utils import set_dirs, ensure_dirs, has_results, save_pkl, load_pkl, fig_path
 from cho_enkf import plotting as pl
 
 S01_PKL = RESULTS_DIR / "01_ensemble_tuning" / "pkl"
@@ -45,7 +45,8 @@ print("=" * 60)
 datasets       = load_datasets(DATA_DIR, DATASET_FILES)
 volume_results = load_pkl('volume_results.pkl', subdir=S01_PKL)
 
-LOAD_FROM_PKL = True  # set False to re-run from scratch
+LOAD_FROM_PKL = has_results()
+print(f"\n{'Loading from pkl' if LOAD_FROM_PKL else 'No existing results — running from scratch'} ...")
 
 # ── (a) Prior width sensitivity ───────────────────────────────────────────────
 print("\n--- (a) Prior width sensitivity ---")
@@ -102,7 +103,7 @@ pl.plot_prior_width_state_profiles(
     datasets, STATE_NAMES, AXIS_NAMES,
     scale_colors=scale_colors, scale_labels=scale_labels,
     custom_titles=CUSTOM_TITLES,
-    save_dir=fig_path("").parent,
+    save_dir=S04_FIG,
 )
 
 # ── (b) ±% parameter sensitivity ─────────────────────────────────────────────
@@ -167,7 +168,7 @@ pl.plot_param_sensitivity_comparison(
     datasets, perturb_sims, sim_baseline, PARAM_SENS_PERTURBATIONS,
     STATE_NAMES, AXIS_NAMES, BEST_ENSEMBLE_SIZES,
     DATASET_COLOURS, DATASET_MARKERS,
-    save_dir=fig_path("").parent,
+    save_dir=S04_FIG,
 )
 
 print("\nStep 4 complete.")

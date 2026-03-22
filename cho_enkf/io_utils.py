@@ -33,6 +33,16 @@ def ensure_dirs():
         _FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def has_results(pkl_dir=None):
+    """Return True if the pkl directory exists and contains at least one .pkl file.
+
+    Used to auto-detect whether to load from disk or run from scratch:
+      LOAD_FROM_PKL = has_results()
+    """
+    folder = Path(pkl_dir) if pkl_dir is not None else _PKL_DIR
+    return folder is not None and folder.exists() and any(folder.glob("*.pkl"))
+
+
 # ─── Pickle helpers ──────────────────────────────────────────────────────────
 
 def save_pkl(item, fname: str, subdir: Path = None):
@@ -51,6 +61,31 @@ def load_pkl(fname: str, subdir: Path = None):
     path = folder / fname
     with open(path, 'rb') as fh:
         return pickle.load(fh)
+
+
+# ─── Run notes ───────────────────────────────────────────────────────────────
+
+def init_run_notes(results_dir):
+    """Create a run_notes.txt in results_dir if it does not already exist."""
+    results_dir = Path(results_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
+    notes_file = results_dir / "run_notes.txt"
+    if not notes_file.exists():
+        notes_file.write_text(
+            f"Run: {results_dir.name}\n"
+            "=" * 40 + "\n\n"
+            "Scripts run:\n"
+            "  [ ] 01_ensemble_tuning\n"
+            "  [ ] 02_longterm_pred\n"
+            "  [ ] 03_irregular\n"
+            "  [ ] 04_sensitivity\n"
+            "  [ ] 05_comparisons\n\n"
+            "Changes vs previous run:\n"
+            "  - \n\n"
+            "Notes:\n"
+            "  - \n"
+        )
+        print(f"Created: {notes_file}")
 
 
 # ─── Figure path helper ──────────────────────────────────────────────────────

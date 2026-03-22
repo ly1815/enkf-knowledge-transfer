@@ -33,7 +33,7 @@ from cho_enkf.analysis import (
     compute_r2_table, compute_overall_convergence_table,
     get_posterior_param_matrix,
 )
-from cho_enkf.io_utils import set_dirs, ensure_dirs, save_pkl, load_pkl, fig_path
+from cho_enkf.io_utils import set_dirs, ensure_dirs, has_results, save_pkl, load_pkl, fig_path
 from cho_enkf import plotting as pl
 
 S01_PKL = RESULTS_DIR / "01_ensemble_tuning" / "pkl"
@@ -53,7 +53,8 @@ ensemble_tuning    = load_pkl('ensemble_tuning.pkl',    subdir=S01_PKL)
 
 print(f"\nBest ensemble sizes: {BEST_ENSEMBLE_SIZES}")
 
-LOAD_FROM_PKL = True  # set False to re-run from scratch
+LOAD_FROM_PKL = has_results()
+print(f"\n{'Loading from pkl' if LOAD_FROM_PKL else 'No existing results — running from scratch'} ...")
 
 if LOAD_FROM_PKL:
     print("\nLoading saved results from pkl ...")
@@ -102,7 +103,7 @@ pl.plot_longterm_pred_ensemble_simulation_errorbar(
     dataset_colours=DATASET_COLOURS,
     dataset_markers=DATASET_MARKERS,
     selected_forecast_indices=FORECAST_INDICES,
-    save_dir=fig_path("").parent,
+    save_dir=S02_FIG,
 )
 
 # ── Figure E: Parameter comparison — T127 (scale effects) ─────────────────────

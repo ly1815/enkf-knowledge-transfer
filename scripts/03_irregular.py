@@ -25,7 +25,7 @@ from cho_enkf.config import (
 )
 from cho_enkf.data_loader import load_datasets
 from cho_enkf.enkf import run_pipeline_irregular_48_72
-from cho_enkf.io_utils import set_dirs, ensure_dirs, save_pkl, load_pkl, fig_path
+from cho_enkf.io_utils import set_dirs, ensure_dirs, has_results, save_pkl, load_pkl, fig_path
 from cho_enkf import plotting as pl
 
 S01_PKL = RESULTS_DIR / "01_ensemble_tuning" / "pkl"
@@ -41,7 +41,8 @@ print("=" * 60)
 datasets       = load_datasets(DATA_DIR, DATASET_FILES)
 volume_results = load_pkl('volume_results.pkl', subdir=S01_PKL)
 
-LOAD_FROM_PKL = True  # set False to re-run from scratch
+LOAD_FROM_PKL = has_results()
+print(f"\n{'Loading from pkl' if LOAD_FROM_PKL else 'No existing results — running from scratch'} ...")
 
 if LOAD_FROM_PKL:
     print("\nLoading saved results from pkl ...")
@@ -91,7 +92,7 @@ print("\n[K] Irregular measurement profiles ...")
 pl.plot_all_datasets_state_profiles(
     datasets_irregular, sim_irregular,
     exp_meas_key="exp_meas_incomplete_48_72",
-    save_dir=fig_path("").parent,
+    save_dir=S03_FIG,
 )
 
 print("\nStep 3 complete.")
