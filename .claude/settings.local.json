@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(.venv/Scripts/python.exe -m pip install python-docx -q)",
+      "Bash(.venv/Scripts/python.exe -c \":*)",
+      "Bash(mv scripts/06_comparisons.py scripts/05_comparisons.py)",
+      "Bash(rm scripts/05_figures.py)",
+      "Bash(cd:*)"
     ]
   }
 }

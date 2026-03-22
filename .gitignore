@@ -23,3 +23,10 @@ old_notebooks/
 
 # Temporary extraction file
 nb_source.py
+
+# Claude Code files
+CLAUDE.md
+.claude/
+
+# Paper documents (not for public repo)
+documents/
