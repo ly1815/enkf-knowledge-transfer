@@ -105,6 +105,55 @@ def compute_overall_convergence_table(dataset_info: list, datasets: dict,
     return pd.DataFrame(overall).round(1)
 
 
+def detect_instability(traj: np.ndarray, ref_traj: np.ndarray,
+                       exp_meas,
+                       state_names: list,
+                       threshold: float = 0.5) -> np.ndarray:
+    """
+    Detect per-state instability by comparing a trajectory against the nominal
+    1× reference trajectory, mirroring visual inspection.
+
+    A state is flagged as unstable if its maximum absolute deviation from the
+    reference exceeds ``threshold × exp_max`` at any point in the simulation.
+    This single criterion captures both upward blow-ups and downward crashes
+    symmetrically, without needing separate upper/lower checks.
+
+    The 1× scale should always return all-False (deviation from itself = 0).
+
+    Parameters
+    ----------
+    traj        : ndarray (n_steps, n_states) — trajectory to assess
+    ref_traj    : ndarray (n_steps, n_states) — nominal 1× reference trajectory
+    exp_meas    : DataFrame with columns matching ``state_names``
+    state_names : list of str, length n_states
+    threshold   : max deviation expressed as a fraction of exp_max (default 0.5)
+
+    Returns
+    -------
+    unstable : ndarray of bool, shape (n_states,) — True means unstable
+    """
+    traj     = np.asarray(traj,     dtype=float)
+    ref_traj = np.asarray(ref_traj, dtype=float)
+    # Align lengths in case trajectories differ by a step or two
+    n = min(traj.shape[0], ref_traj.shape[0])
+    deviation = np.abs(traj[:n] - ref_traj[:n])   # (n, n_states)
+
+    n_states = traj.shape[1]
+    unstable = np.zeros(n_states, dtype=bool)
+
+    for i, state in enumerate(state_names):
+        if state not in exp_meas.columns:
+            continue
+        obs = pd.to_numeric(exp_meas[state], errors='coerce').values
+        exp_max = np.nanmax(obs)
+        if not np.isfinite(exp_max) or exp_max == 0:
+            continue
+        if deviation[:, i].max() > threshold * exp_max:
+            unstable[i] = True
+
+    return unstable
+
+
 def get_posterior_param_matrix(dataset_name: str, ensemble_size: int,
                                 PX_records: dict, parameter_keys: list) -> np.ndarray:
     """

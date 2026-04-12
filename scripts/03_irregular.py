@@ -22,6 +22,7 @@ from cho_enkf.config import (
     MEAN_PARAMETERS, PARAMETERS_ENSEMBLE_COVARIANCE,
     DATASET_NOISE_VARIANCES, KQ_DICT, KR_DICT,
     BEST_ENSEMBLE_SIZES, IRREGULAR_PATTERN_HOURS,
+    DATASET_COLOURS, DATASET_MARKERS, CUSTOM_TITLES,
 )
 from cho_enkf.data_loader import load_datasets
 from cho_enkf.enkf import run_pipeline_irregular_48_72
@@ -91,8 +92,77 @@ else:
 print("\n[K] Irregular measurement profiles ...")
 pl.plot_all_datasets_state_profiles(
     datasets_irregular, sim_irregular,
+    axis_name=AXIS_NAMES,
+    state_names=STATE_NAMES,
+    dataset_colours=DATASET_COLOURS,
+    dataset_markers=DATASET_MARKERS,
+    dataset_ensemble_sizes=BEST_ENSEMBLE_SIZES,
     exp_meas_key="exp_meas_incomplete_48_72",
     save_dir=S03_FIG,
+)
+
+# ── Figure K2: Cell Line A irregular overlay ─────────────────────────────────
+print("\n[K2] Cell Line A irregular overlay ...")
+pl.overlay_all_datasets_irregular(
+    datasets_irregular, sim_irregular,
+    axis_name=AXIS_NAMES,
+    state_names=STATE_NAMES,
+    dataset_colours=DATASET_COLOURS,
+    dataset_markers=DATASET_MARKERS,
+    custom_titles=CUSTOM_TITLES,
+    ds_list=["CHO_T127_flask_PMJ", "CHO_T127_SNS_36.5", "CHO_T127_SNS_32"],
+    exp_meas_key="exp_meas_incomplete_48_72",
+    save_path=S03_FIG / "irregular_T127_overlay.png",
+)
+
+# ── Figure K3: Cell Line B irregular overlay ─────────────────────────────────
+print("\n[K3] Cell Line B irregular overlay ...")
+pl.overlay_all_datasets_irregular(
+    datasets_irregular, sim_irregular,
+    axis_name=AXIS_NAMES,
+    state_names=STATE_NAMES,
+    dataset_colours=DATASET_COLOURS,
+    dataset_markers=DATASET_MARKERS,
+    custom_titles=CUSTOM_TITLES,
+    ds_list=["CHO_GS46_F_C_Inv", "CHO_GS46_F_all", "CHO_GS46_F_all_pl40"],
+    exp_meas_key="exp_meas_incomplete_48_72",
+    save_path=S03_FIG / "irregular_GS46_overlay.png",
+)
+
+# ── Figure K_combined: T127 + GS46 as one large stacked figure ───────────────
+print("\n[K_combined] Combined T127 + GS46 irregular overlay ...")
+pl.overlay_irregular_combined(
+    datasets_irregular, sim_irregular,
+    axis_name=AXIS_NAMES,
+    state_names=STATE_NAMES,
+    dataset_colours=DATASET_COLOURS,
+    dataset_markers=DATASET_MARKERS,
+    custom_titles=CUSTOM_TITLES,
+    t127_ds=["CHO_T127_flask_PMJ", "CHO_T127_SNS_36.5", "CHO_T127_SNS_32"],
+    gs46_ds=["CHO_GS46_F_C_Inv", "CHO_GS46_F_all", "CHO_GS46_F_all_pl40"],
+    exp_meas_key="exp_meas_incomplete_48_72",
+    save_path=S03_FIG / "irregular_combined_overlay.png",
+)
+
+# ── Figure K4: Abstract figure — four representative datasets ────────────────
+print("\n[K4] Abstract four-dataset overlay ...")
+_abstract_colours = {**DATASET_COLOURS, "CHO_T127_SNS_32": "royalblue"}
+pl.overlay_all_datasets_irregular(
+    datasets_irregular, sim_irregular,
+    axis_name=AXIS_NAMES,
+    state_names=STATE_NAMES,
+    dataset_colours=_abstract_colours,
+    dataset_markers=DATASET_MARKERS,
+    custom_titles=CUSTOM_TITLES,
+    ds_list=[
+        "CHO_T127_flask_PMJ",
+        "CHO_T127_SNS_32",
+        "CHO_GS46_F_C_Inv",
+        "CHO_GS46_F_all",
+    ],
+    exp_meas_key="exp_meas_incomplete_48_72",
+    legend_ncol=4,
+    save_path=S03_FIG / "irregular_abstract_overlay.png",
 )
 
 print("\nStep 3 complete.")

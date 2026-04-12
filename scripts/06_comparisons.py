@@ -1,7 +1,7 @@
 """
-05_comparisons.py
+06_comparisons.py
 =================
-Step 5: Compare EnKF (full data, best ensemble size) against an open-loop
+Step 6: Compare EnKF (full data, best ensemble size) against an open-loop
 simulation with parameters reparametrised specifically for CHO_GS46_F_C_Inv.
 
 Addresses Reviewer 2, point 5:
@@ -12,7 +12,7 @@ Addresses Reviewer 2, point 5:
 Standalone — no dependency on other scripts' pkl files.
 
 Run from project root:
-    poetry run python scripts/05_comparisons.py
+    poetry run python scripts/06_comparisons.py
 """
 
 import sys
@@ -35,16 +35,16 @@ from cho_enkf.enkf import run_enkf_with_tuning
 from cho_enkf.io_utils import set_dirs, ensure_dirs, has_results, save_pkl, load_pkl, fig_path
 from cho_enkf import plotting as pl
 
-S05_PKL = RESULTS_DIR / "05_comparisons" / "pkl"
-S05_FIG = RESULTS_DIR / "05_comparisons" / "figures"
-set_dirs(S05_PKL, S05_FIG)
+S06_PKL = RESULTS_DIR / "06_comparisons" / "pkl"
+S06_FIG = RESULTS_DIR / "06_comparisons" / "figures"
+set_dirs(S06_PKL, S06_FIG)
 ensure_dirs()
 
 DS     = 'CHO_GS46_F_C_Inv'
 BEST_N = BEST_ENSEMBLE_SIZES[DS]   # 75
 
 print("=" * 60)
-print("Step 5: EnKF vs Reparametrised Model Comparison")
+print("Step 6: EnKF vs Reparametrised Model Comparison")
 print(f"  Dataset : {DS}")
 print(f"  Ensemble: {BEST_N}")
 print("=" * 60)
@@ -108,6 +108,11 @@ enkf_at_obs    = enkf_traj[time_indices]
 reparam_at_obs = reparam_sim[np.minimum(time_indices, reparam_sim.shape[0] - 1)]
 nominal_at_obs = nominal_sim[np.minimum(time_indices, nominal_sim.shape[0] - 1)]
 
+def _r2(pred, obs):
+    ss_res = np.sum((pred - obs) ** 2)
+    ss_tot = np.sum((obs - np.mean(obs)) ** 2)
+    return float(1 - ss_res / ss_tot) if ss_tot > 0 else float('nan')
+
 print("\n--- RMSE per state ---")
 header = f"{'State':<8}  {'EnKF':>12}  {'Reparametrised':>16}  {'Nominal':>10}"
 print(header)
@@ -131,6 +136,29 @@ print("-" * len(header))
 print(f"{'Mean':<8}  {np.mean(overall_enkf):>12.4g}  "
       f"{np.mean(overall_reparam):>16.4g}  {np.mean(overall_nominal):>10.4g}")
 
+print("\n--- R² per state ---")
+header_r2 = f"{'State':<8}  {'EnKF':>12}  {'Reparametrised':>16}  {'Nominal':>10}"
+print(header_r2)
+print("-" * len(header_r2))
+
+r2_enkf_all, r2_reparam_all, r2_nominal_all = [], [], []
+for i, sname in enumerate(STATE_NAMES):
+    obs   = exp_vals[:, i]
+    valid = ~np.isnan(obs)
+    if not valid.any():
+        continue
+    r2_enkf    = _r2(enkf_at_obs[valid, i],    obs[valid])
+    r2_reparam = _r2(reparam_at_obs[valid, i],  obs[valid])
+    r2_nominal = _r2(nominal_at_obs[valid, i],  obs[valid])
+    print(f"{sname:<8}  {r2_enkf:>12.4f}  {r2_reparam:>16.4f}  {r2_nominal:>10.4f}")
+    r2_enkf_all.append(r2_enkf)
+    r2_reparam_all.append(r2_reparam)
+    r2_nominal_all.append(r2_nominal)
+
+print("-" * len(header_r2))
+print(f"{'Mean':<8}  {np.mean(r2_enkf_all):>12.4f}  "
+      f"{np.mean(r2_reparam_all):>16.4f}  {np.mean(r2_nominal_all):>10.4f}")
+
 # ── Figure ────────────────────────────────────────────────────────────────────
 print("\nGenerating comparison figure ...")
 pl.plot_enkf_vs_reparametrised(
@@ -146,4 +174,4 @@ pl.plot_enkf_vs_reparametrised(
     save_path=fig_path("enkf_vs_reparametrised.png"),
 )
 
-print(f"\nStep 5 complete.")
+print(f"\nStep 6 complete.")
