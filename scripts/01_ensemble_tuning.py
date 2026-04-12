@@ -107,6 +107,7 @@ pl.plot_rmse_variance_and_computation_time_all(
     rmse_results, computation_times,
     datasets_to_include=list(BEST_ENSEMBLE_SIZES.keys()),
     custom_titles=CUSTOM_TITLES,
+    colours={"rmse": "#C0392B", "std": "#2980B9", "runtime": "#27AE60"},
     save_path=fig_path("ensemble_tuning.png"),
 )
 
