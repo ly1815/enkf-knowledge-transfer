@@ -397,7 +397,7 @@ def plot_longterm_pred_ensemble_simulation_errorbar(
             fc_leg = [
                 Line2D([0], [0], color=dataset_colours[ds_name],
                        lw=2, linestyle=forecast_ls[k % 3],
-                       label=f'Prediction from update {j}')
+                       label=f'Prediction from Day {j}')
                 for k, j in enumerate(fidx[:3])
             ]
             leg2 = fig.legend(handles=fc_leg, loc='lower center', ncol=3,
@@ -509,8 +509,6 @@ def plot_posterior_param_correlation(corr_matrices, best_ensemble_sizes,
         ax.tick_params(axis='x', labelsize=7, rotation=90)
         ax.tick_params(axis='y', labelsize=7, rotation=0)
 
-    plt.suptitle('Posterior Parameter Ensemble Correlation (final assimilation step)',
-                 fontsize=13, fontweight='bold', y=1.01)
     plt.tight_layout()
     _savefig(fig, save_path, dpi=600)
 
@@ -659,7 +657,7 @@ def plot_prior_width_state_profiles(prior_width_sim, prior_width_scales,
 
 def plot_stability_heatmap(stability_flags, prior_width_scales,
                            best_ensemble_sizes, state_names, custom_titles,
-                           save_path=None):
+                           save_path=None, x_labels=None):
     """
     Plot a 2×3 grid of binary stability heatmaps (green=stable, red=unstable).
 
@@ -680,7 +678,7 @@ def plot_stability_heatmap(stability_flags, prior_width_scales,
     n_ds      = len(ds_order)
     n_states  = len(state_names)
     n_scales  = len(prior_width_scales)
-    scale_labels = [f"{s}×" for s in prior_width_scales]
+    scale_labels = x_labels if x_labels is not None else [f"{s}×" for s in prior_width_scales]
 
     # Build data array: shape (n_ds, n_states, n_scales)
     data = np.zeros((n_ds, n_states, n_scales), dtype=float)
