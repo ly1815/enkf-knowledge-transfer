@@ -14,6 +14,7 @@ Outputs saved to results/{RUN_NAME}/pkl/ and results/{RUN_NAME}/figures/
 
 import sys
 import numpy as np
+import pandas as pd
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -158,15 +159,40 @@ pl.plot_posterior_param_correlation(
     save_path=fig_path("posterior_param_correlation.png"),
 )
 
+# ── Highly correlated parameter pairs (|r| > 0.7) ────────────────────────────
+CORR_THRESHOLD = 0.7
+print(f"\n--- Highly correlated parameter pairs (|r| > {CORR_THRESHOLD}) ---")
+for ds_name, corr in corr_matrices.items():
+    n = len(PARAMETER_KEYS)
+    pairs = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            r = corr[i, j]
+            if abs(r) > CORR_THRESHOLD:
+                pairs.append((abs(r), r, PARAMETER_KEYS[i], PARAMETER_KEYS[j]))
+    pairs.sort(reverse=True)
+
+    title = dataset_titles.get(ds_name, ds_name)
+    print(f"\n  {title}:")
+    if pairs:
+        print(f"    {'Parameter 1':<12}  {'Parameter 2':<12}  {'r':>7}")
+        print(f"    {'-'*12}  {'-'*12}  {'-'*7}")
+        for _, r, p1, p2 in pairs:
+            print(f"    {p1:<12}  {p2:<12}  {r:>+7.4f}")
+    else:
+        print("    (none)")
+
 # ── R² summary table ──────────────────────────────────────────────────────────
 print("\n--- R² Summary (best ensemble size per dataset) ---")
 df_r2 = compute_r2_table(datasets, ensemble_tuning, BEST_ENSEMBLE_SIZES, STATE_NAMES)
-print(df_r2.to_string())
+with pd.option_context('display.width', None, 'display.max_columns', None):
+    print(df_r2.to_string())
 
 # ── Parameter convergence table ───────────────────────────────────────────────
 print("\n--- Parameter Convergence Summary ---")
 dataset_info = [(ds, BEST_ENSEMBLE_SIZES[ds]) for ds in BEST_ENSEMBLE_SIZES]
 conv_df = compute_overall_convergence_table(dataset_info, datasets, PX_records_best)
-print(conv_df.to_string())
+with pd.option_context('display.width', None, 'display.max_columns', None):
+    print(conv_df.to_string())
 
 print("\nStep 2 complete.")

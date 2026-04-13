@@ -14,6 +14,7 @@ Outputs saved to results/05_priormean_sensitivity/pkl/ and results/05_priormean_
 """
 
 import sys
+import numpy as np
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -24,11 +25,12 @@ from cho_enkf.config import (
     MEAN_PARAMETERS, PARAMETERS_ENSEMBLE_COVARIANCE,
     DATASET_NOISE_VARIANCES, KQ_DICT, KR_DICT,
     BEST_ENSEMBLE_SIZES, PARAM_SENS_PERTURBATIONS,
-    DATASET_COLOURS, DATASET_MARKERS,
+    CUSTOM_TITLES, DATASET_COLOURS, DATASET_MARKERS,
 )
 from cho_enkf.data_loader import load_datasets
 from cho_enkf.enkf import run_enkf_with_mean_params
 from cho_enkf.io_utils import set_dirs, ensure_dirs, has_results, save_pkl, load_pkl, fig_path
+from cho_enkf.analysis import detect_instability
 from cho_enkf import plotting as pl
 
 S01_PKL = RESULTS_DIR / "01_ensemble_tuning" / "pkl"
@@ -102,6 +104,54 @@ else:
 
     save_pkl(PARAM_SENS_PERTURBATIONS, 'param_sens_perturbations.pkl')
     print("Parameter sensitivity results saved.")
+
+# ── Stability detection ───────────────────────────────────────────────────────
+print("\nDetecting instability per state / dataset / perturbation ...")
+
+# Build ordered perturbation levels: -20%, -10%, 0%, +10%, +20%
+sorted_p = sorted(PARAM_SENS_PERTURBATIONS)   # ascending, e.g. [0.1, 0.2]
+perturb_levels = (
+    [(f'-{int(p*100)}%', 'minus', p) for p in reversed(sorted_p)]
+    + [('0%', 'baseline', 0)]
+    + [(f'+{int(p*100)}%', 'plus', p) for p in sorted_p]
+)
+level_keys = [lk for lk, _, _ in perturb_levels]
+
+stability_flags_mean = {}
+for level_key, sign, p in perturb_levels:
+    stability_flags_mean[level_key] = {}
+    for ds_name in BEST_ENSEMBLE_SIZES:
+        if sign == 'baseline':
+            # Baseline is always stable by definition
+            stability_flags_mean[level_key][ds_name] = np.zeros(len(STATE_NAMES), dtype=bool)
+            continue
+        traj     = np.asarray(perturb_sims[p][sign][ds_name])
+        ref_traj = np.asarray(sim_baseline[ds_name])
+        exp_meas = datasets[ds_name]['exp_meas']
+        stability_flags_mean[level_key][ds_name] = detect_instability(
+            traj, ref_traj, exp_meas, STATE_NAMES, threshold=0.5
+        )
+
+# Report summary
+for level_key, sign, p in perturb_levels:
+    for ds_name, flags in stability_flags_mean[level_key].items():
+        n_unstable = flags.sum()
+        if n_unstable:
+            bad = [STATE_NAMES[i] for i in np.where(flags)[0]]
+            print(f"  [{level_key}] {ds_name}: UNSTABLE — {bad}")
+        else:
+            print(f"  [{level_key}] {ds_name}: stable")
+
+save_pkl(stability_flags_mean, 'stability_flags_mean.pkl')
+
+# ── Stability heatmap ─────────────────────────────────────────────────────────
+print("\n[J-heatmap] Prior mean stability heatmap ...")
+pl.plot_stability_heatmap(
+    stability_flags_mean, level_keys,
+    BEST_ENSEMBLE_SIZES, STATE_NAMES, CUSTOM_TITLES,
+    save_path=S05_FIG / "stability_heatmap.png",
+    x_labels=level_keys,
+)
 
 # ── Figure J: ±% parameter sensitivity (one per dataset) ──────────────────────
 print("\n[J] Parameter sensitivity ...")
