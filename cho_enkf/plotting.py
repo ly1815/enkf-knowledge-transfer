@@ -129,9 +129,9 @@ def plot_rmse_variance_and_computation_time_all(rmse_results, computation_times,
 
     legend_elements = [
         Line2D([0], [0], marker="o", color=colours["rmse"], lw=4, markersize=10,
-               label="Overall normalised RMSE (all states)"),
+               label="Overall normalised MAE (all states)"),
         Line2D([0], [0], marker="s", color=colours["std"], linestyle="--",
-               lw=4, markersize=10, label="Std of normalised RMSE"),
+               lw=4, markersize=10, label="Std of normalised MAE"),
         Line2D([0], [0], marker="d", color=colours["runtime"], lw=4, markersize=10,
                label="Entire culture runtime"),
     ]

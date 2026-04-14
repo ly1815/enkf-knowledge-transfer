@@ -3,7 +3,6 @@
 % --- All packages retained ---
 \usepackage{setspace}
 \usepackage{geometry}
-\usepackage{xcolor}
 \usepackage{soul}
 \usepackage{multirow}
 \usepackage[numbers,sort&compress]{natbib}
@@ -167,16 +166,16 @@
 \input{Sections/SI_Noise}
 \clearpage
 \newpage
-\section{Parameter Covariances}
-\input{Sections/SI_ParameterCov}
+\section{\rev{Prior Mean Parameter Sensitivity}}
+\input{Sections/SI_PriormeanSensitivity}
 \clearpage
 \newpage
 \section{\rev{Prior Covariance Width Sensitivity}}
 \input{Sections/SI_PriorcovSensitivity}
 \clearpage
 \newpage
-\section{\rev{Prior Mean Parameter Sensitivity}}
-\input{Sections/SI_PriormeanSensitivity}
+\section{Parameter Covariances}
+\input{Sections/SI_ParameterCov}
 \clearpage
 \newpage
 \section{Parameter Sensitivity Analysis}
@@ -187,12 +186,12 @@
 \input{Sections/SI_rmse}
 \clearpage
 \newpage
-\section{Long Term Prediction}
-\input{Sections/SI_long-term}
-\clearpage
-\newpage
 \section{\rev{Posterior Parameter Correlations}}
 \input{Sections/SI_ParamCorr}
+\clearpage
+\newpage
+\section{Long Term Prediction}
+\input{Sections/SI_long-term}
 \clearpage
 \newpage
 \section{\textcolor{blue}{EnKF State Estimation Under Irregular Measurement Schedules}}
