@@ -1,0 +1,205 @@
+\documentclass[10pt]{article}
+
+% --- All packages retained ---
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage{multirow}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{hyperref}
+
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathptmx}   % Times New Roman — compact serif, load after amsmath/amssymb
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{lscape}
+\usepackage{makecell}
+\usepackage{pifont}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit}
+\usepackage{siunitx}
+\usepackage{tcolorbox}
+\usepackage{longtable}
+\usepackage[table]{xcolor}
+\usepackage{adjustbox}
+\usepackage{hhline}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[expansion=false]{microtype}
+\usepackage[font=small, labelfont=rm, textfont=rm]{caption}
+\usepackage[colorinlistoftodos]{todonotes}
+
+%\usepackage{titlesec}
+\usepackage[compact]{titlesec}
+\titlespacing*{\section}{0pt}{1ex plus .2ex minus .2ex}{0.5ex}
+\titlespacing*{\subsection}{0pt}{0.8ex plus .2ex minus .1ex}{0.4ex}
+\titlespacing*{\subsubsection}{0pt}{0.6ex plus .1ex minus .1ex}{0.3ex}
+
+
+
+
+% --- TikZ Styles ---
+\tikzstyle{startstop} = [rectangle, rounded corners=8pt, inner xsep=10pt, inner ysep=5pt, draw=black, thick, fill=gray!10]
+\tikzstyle{process}   = [rectangle, minimum width=13cm, text width=12cm, draw=black, align=left, inner ysep=5pt, thick, fill=blue!10]
+\tikzstyle{decision}  = [diamond, draw=black, align=center, thick, fill=orange!10]
+\tikzstyle{arrow}     = [thick,-{Triangle}]
+\tikzstyle{smallprocess}   = [rectangle, minimum width=4cm, minimum height=1cm, text width=3.5cm, draw=black, align=center, inner ysep=5pt, thick, fill=blue!10]
+
+\tikzset{
+  blockarrow/.pic={
+    \def\BodyLength{6}
+    \def\TipLength{1}
+    \def\Top{0.4}
+    \def\Bottom{-0.4}
+    \def\TipTop{0.8}
+    \def\TipBottom{-0.8}
+    \filldraw[fill=white, draw=black, line width=1pt, scale=#1]
+      (0,\Top)
+      -- (\BodyLength,\Top)
+      -- (\BodyLength,\TipTop)
+      -- ({\BodyLength + \TipLength},0)
+      -- (\BodyLength,\TipBottom)
+      -- (\BodyLength,\Bottom)
+      -- (0,\Bottom)
+      -- cycle;
+  }
+}
+
+% --- Revision markup ---
+% \rev{text}  – new / revised text in blue Times New Roman
+% \del{text}  – deleted text with red strikethrough
+\newcommand{\rev}[1]{{\fontfamily{ptm}\selectfont\color{blue}#1}}
+\setulcolor{red}
+\newcommand{\del}[1]{{\color{red}\st{#1}}}
+
+% --- Custom commands ---
+\newcommand{\cov}{{\rm Cov}}
+\newcommand{\authorname}{Luxi Yu}
+
+
+% --- Prevent widows/orphans ---
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\widowpenalty=10000
+\clubpenalty=10000
+\displaywidowpenalty=10000
+\sloppy
+
+% --- Margins and spacing ---
+\geometry{
+  a4paper,
+  top=0.4in,
+  bottom=0.6in,
+  left=0.4in,
+  right=0.4in
+}
+
+\doublespacing
+
+% --- Title ---
+\title{Model-Enabled Knowledge Transfer across cell lines, culture scales and conditions}
+\author{Luxi Yu, Antonio del Rio Chanona, Cleo Kontoravdi*\\
+\small Department of Chemical Engineering, South Kensington campus, Imperial College London, London SW7 2AZ, United Kingdom\\
+\small \texttt{cleo.kontoravdi@imperial.ac.uk}}
+
+\begin{document}
+\date{}
+
+\maketitle
+
+\begin{abstract}
+\input{Sections/Abstract}
+\end{abstract}
+
+\textbf{Keywords:}  Bioprocess Modelling, State Estimation, Ensemble Kalman Filter, Knowledge Transfer
+
+% --- Main sections ---
+\section{Introduction}
+\input{Sections/Intro}
+
+\section{Materials and Methods}
+\input{Sections/Methods}
+
+\section{Results and Discussion}
+\input{Sections/Results}
+
+\section{Conclusions}
+\input{Sections/Conclusions}
+
+\section{Acknowledgments}
+\input{Sections/Acknowledgments}
+
+\section{\rev{Data and Code Availability}}
+\input{Sections/DataAvailability}
+
+% --- Bibliography ---
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+% --- Appendices ---
+\newpage
+\appendix
+
+% ---- Reset figure/table numbering for Supplementary ----
+\renewcommand{\thefigure}{S\arabic{figure}}
+\setcounter{figure}{0}
+
+\renewcommand{\thetable}{S\arabic{table}}
+\setcounter{table}{0}
+
+\section{Mechanistic Model from Kotidis \textit{et al.} 2019}
+\input{Sections/SI_Model}
+\clearpage
+\newpage
+\section{Ensemble Size Selection and Computational Cost}
+\input{Sections/SI_EnsembleTuning}
+\clearpage
+\newpage
+\section{Measurement and Process Noises}
+\input{Sections/SI_Noise}
+\clearpage
+\newpage
+\section{Parameter Covariances}
+\input{Sections/SI_ParameterCov}
+\clearpage
+\newpage
+\section{\rev{Prior Covariance Width Sensitivity}}
+\input{Sections/SI_PriorcovSensitivity}
+\clearpage
+\newpage
+\section{\rev{Prior Mean Parameter Sensitivity}}
+\input{Sections/SI_PriormeanSensitivity}
+\clearpage
+\newpage
+\section{Parameter Sensitivity Analysis}
+\input{Sections/SI_SpreadReduction}
+\clearpage
+\newpage
+\section{RMSE of EnKF Compared with Experimental Data}
+\input{Sections/SI_rmse}
+\clearpage
+\newpage
+\section{Long Term Prediction}
+\input{Sections/SI_long-term}
+\clearpage
+\newpage
+\section{\rev{Posterior Parameter Correlations}}
+\input{Sections/SI_ParamCorr}
+\clearpage
+\newpage
+\section{\textcolor{blue}{EnKF State Estimation Under Irregular Measurement Schedules}}
+\input{Sections/SI_irregular}
+\clearpage
+\newpage
+\section{\rev{EnKF and Reparametrised Model Comparison}}
+\input{Sections/SI_Comparison}
+
+\end{document}

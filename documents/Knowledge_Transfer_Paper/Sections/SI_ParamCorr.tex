@@ -1,0 +1,34 @@
+\label{SI:param_corr}
+{\color{blue}
+Figure~\ref{fig:param_corr} shows the full posterior parameter correlation matrices for all six datasets, computed from the final parameter ensemble at the last assimilation step of the long-term prediction run (Appendix~\ref{long-term}). Table~\ref{tab:param_corr} summarises all pairs exceeding $|r|>0.7$, following the conventional criterion for strong linear association \cite{Cohen1988StatisticalBehavioral}. Only $Lac_{\max 1}$ and $Lac_{\max 2}$ exceed this threshold, and only in the three Cell Line A and Feed C datasets where lactate accumulation occurs; the remaining datasets show no strongly correlated pairs. The negative sign reflects the opposing kinetic roles of the two parameters in the lactate switch: as one activation constant rises, the other falls. This structural correlation does not affect the reliability of state estimation but indicates that the two parameters cannot be independently identified from data alone.
+}
+
+\begin{table}[ht]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\small
+\setlength{\tabcolsep}{5pt}
+\rowcolors{2}{gray!15}{white}
+\caption{\rev{Screening summary of posterior parameter correlations across all six datasets. All $\binom{24}{2} = 276$ parameter pairs were evaluated per dataset; pairs exceeding $|r|>0.7$ are listed explicitly. Datasets with zero flagged pairs are confirmed negatives, not unexamined cases. The full correlation matrices are shown in Figure~\ref{fig:param_corr}.}}
+\label{tab:param_corr}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\rowcolor{gray!30}
+\textbf{Dataset} & \textbf{Pairs screened} & \textbf{Pairs $|r|>0.7$} & \textbf{Parameter 1} & \textbf{Parameter 2} & \textbf{Pearson $r$} \\
+\hline
+Cell Line A -- Shake Flask                  & 276 & 1 & $Lac_{\max 1}$ & $Lac_{\max 2}$ & $-0.740$ \\
+Cell Line A -- Bioreactor 36.5\textdegree C & 276 & 1 & $Lac_{\max 1}$ & $Lac_{\max 2}$ & $-0.750$ \\
+Cell Line A -- Bioreactor 32\textdegree C   & 276 & 0 & --- & --- & --- \\
+Cell Line B -- Feed C                       & 276 & 1 & $Lac_{\max 1}$ & $Lac_{\max 2}$ & $-0.733$ \\
+Cell Line B -- Feed U                       & 276 & 0 & --- & --- & --- \\
+Cell Line B -- Feed U plus 40\%             & 276 & 0 & --- & --- & --- \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Figs/posterior_param_correlation.png}
+    \caption{\rev{Posterior parameter correlation matrices for all six datasets, computed from the final parameter ensemble at the last assimilation step. Lower triangular entries show the Pearson correlation coefficient between each parameter pair; the colour scale ranges from $-1$ (dark blue, strong negative) to $+1$ (dark red, strong positive). Diagonal entries are self-correlations ($r=1$) by definition.}}
+    \label{fig:param_corr}
+\end{figure}
