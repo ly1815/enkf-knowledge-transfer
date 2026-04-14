@@ -191,7 +191,7 @@ DATASET_NOISE_VARIANCES = {
     },
     "CHO_T127_SNS_32": {
         "process_var": {'Xv': 2.0e+19, 'mAb': 1.0e+05, 'Glc': 9.0e+02, 'Amm': 6.0,
-                        'Gln': 4.0, 'Lac': 5.0, 'Glu': 1.6, 'Asn': 0.8}, #in run 3 reduce 'Asn' process variance from 5.0 to 0.8
+                        'Gln': 4.0, 'Lac': 5.0, 'Glu': 1.6, 'Asn': 5.0}, #in run 3 reduce 'Asn' process variance from 5.0 to 0.8
         "obs_var":     {'Xv': 3e+17, 'mAb': 1.5e+03, 'Glc': 5.0, 'Amm': 0.2,
                         'Gln': 0.1, 'Lac': 0.5, 'Glu': 0.04, 'Asn': 0.25},
     },

@@ -28,3 +28,12 @@ nb_source.py
 CLAUDE.md
 .claude/
 
+# LaTeX build artifacts
+documents/Knowledge_Transfer_Paper/main.aux
+documents/Knowledge_Transfer_Paper/main.bbl
+documents/Knowledge_Transfer_Paper/main.blg
+documents/Knowledge_Transfer_Paper/main.fdb_latexmk
+documents/Knowledge_Transfer_Paper/main.fls
+documents/Knowledge_Transfer_Paper/main.log
+documents/Knowledge_Transfer_Paper/main.out
+
