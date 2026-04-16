@@ -1,7 +1,20 @@
 \label{SI:param_corr}
-{\color{blue}
-Figure~\ref{fig:param_corr} shows the full posterior parameter correlation matrices for all six datasets, computed from the final parameter ensemble at the last assimilation step of the long-term prediction run (Supplementary Information~\ref{long-term}). Table~\ref{tab:param_corr} summarises all pairs exceeding $|r|>0.7$,. Only $Lac_{\max 1}$ and $Lac_{\max 2}$ exceed this threshold, and only in the three Cell Line A and Feed C datasets where lactate accumulation occurs; the remaining datasets show no strongly correlated pairs. The negative sign reflects the opposing kinetic roles of the two parameters in the lactate switch: as one activation constant rises, the other falls. This structural correlation does not affect the reliability of state estimation but indicates that the two parameters cannot be independently identified from data alone.
-}
+Figure~\ref{fig:param_corr} and Table~\ref{tab:param_corr} show the posterior parameter correlation matrices and flagged pairs ($|r|>0.7$) across all six datasets, computed from the final parameter ensemble at the last assimilation step. Of the 276 pairwise combinations screened per dataset, only $Lac_{\max1}$ and $Lac_{\max2}$ exceed this threshold, and only in three datasets: Cell Line A shake flask, Cell Line A bioreactor 36.5\,°C, and Cell Line B Feed C.
+
+To understand why, consider the lactate balance and its specific rate expression:
+\begin{equation}
+    \frac{d(V[\mathrm{Lac}])}{dt} = q_{\mathrm{Lac}}\,V X_v - F_{\mathrm{out}}[\mathrm{Lac}]
+\end{equation}
+\begin{equation}
+    q_{\mathrm{Lac}} = \left(\frac{\mu}{Y_{X,Lac}} - Y_{Lac/Glc}\,q_{Glc}\right)\frac{Lac_{\max1} - [\mathrm{Lac}]}{Lac_{\max1}} + m_{lac}\,\frac{Lac_{\max2} - [\mathrm{Lac}]}{Lac_{\max2}}
+\end{equation}
+The two parameters enter through structurally distinct terms: $Lac_{\max1}$ modulates the growth-associated flux, scaled by the time-varying quantity $(\mu/Y_{X,Lac} - Y_{Lac/Glc}\,q_{Glc})$; $Lac_{\max2}$ modulates the maintenance flux, scaled by the constant rate $m_{lac}$. Because the two terms carry different temporal signatures, $Lac_{\max1}$ and $Lac_{\max2}$ are in principle structurally identifiable from the observed lactate trajectory.
+
+Practical identifiability, however, depends on the $[\mathrm{Lac}]$ dynamics providing sufficient differential excitation of the two terms. When $[\mathrm{Lac}]$ remains well below both thresholds throughout the culture, as under persistent net accumulation, both saturation factors remain near unity and contribute similarly scaled corrections. The ensemble cannot distinguish raising one constant from lowering the other, and a strong negative posterior correlation emerges. The negative sign reflects the opposing kinetic roles: as one activation constant increases, the other decreases, with negligible net effect on the predicted trajectory. Under conditions with earlier and stronger net lactate consumption, namely the 32\,°C bioreactor, Feed U, and Feed U plus 40\% datasets, $[\mathrm{Lac}]$ traverses a wider dynamic range, differentially exciting the two saturation terms and enabling their separation; no pairs exceed the threshold in these datasets.
+
+Cell Line B Feed C presents an intermediate case: despite eventual net consumption, lactate accumulates until approximately day 8, leaving a narrow window of differential excitation before the culture ends. This is sufficient to break the strong correlation in the other consuming datasets but not here, where the net consumption is both later in onset and more gradual.
+
+This correlation does not affect the reliability of state estimation, which depends on the ensemble mean trajectory rather than on parameter independence. It does indicate that $Lac_{\max1}$ and $Lac_{\max2}$ cannot be independently identified under lactate-accumulating conditions without additional structural constraints or experiments designed to excite the two consumption pathways separately.
 
 \begin{table}[ht]
 \centering
