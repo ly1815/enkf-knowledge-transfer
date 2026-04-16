@@ -1,0 +1,46 @@
+\label{SI:estimator_comparison}
+{\color{blue}
+This section discusses the practical suitability of Kalman-based state estimators for the dual state and parameter estimation problem considered in this work, with particular attention to why the Extended Kalman Filter (EKF) and Unscented Kalman Filter (UKF) are ill-suited to the knowledge transfer setting, and why the Ensemble Kalman Filter (EnKF) is robust to the specific challenges it presents.
+
+\subsection*{Extended Kalman Filter}
+
+The EKF propagates mean and covariance through a nonlinear system by linearising the process model at the current state estimate via a Jacobian. This first-order approximation is acceptable for mildly nonlinear systems near the operating point but introduces two compounding problems in this setting.
+
+First, the CHO cell culture model contains strongly nonlinear kinetics (Monod growth, multiplicative inhibition terms) and is subject to discrete, large-magnitude feeding events that produce sharp discontinuities in state trajectories. The Jacobian evaluated at the pre-feeding mean is a poor approximation of the true local dynamics immediately after a feed addition, and these linearisation errors accumulate over successive time steps.
+
+Second, and more fundamentally, knowledge transfer implies that the base model parameters were calibrated on a different system. At early stages of adaptation, the model mean prediction can be substantially displaced from the true system trajectory, producing large innovations. The EKF covariance update under large innovations can drive the covariance matrix to near-negative-definite values, since the update equation $P^{+} = (I - KH)P$ does not preserve positive definiteness when the Kalman gain $K$ is large and the approximation errors in $H$ (the linearised observation matrix) are non-negligible. Once the covariance becomes ill-conditioned, subsequent Jacobian computations are unreliable, the gain escalates further, and the filter diverges. In practice, this instability manifested during attempts to apply EKF to the cross-cell-line and cross-scale datasets, requiring excessively large process noise inflation to prevent divergence — at which point the filter loses sensitivity to the measurements and provides no useful adaptation.
+
+\subsection*{Unscented Kalman Filter}
+
+The UKF replaces linearisation with a deterministic set of sigma points, constructed to capture the mean and covariance of the prior distribution exactly to third order. It is therefore more robust than the EKF for nonlinear dynamics under moderate model-measurement mismatch and has been successfully applied in bioprocessing state estimation \cite{Fernandes2015ExtendedCultures, Dewasme2015StateCells, Abadli2021AnCultures, Kramer2019AFilter}.
+
+However, the UKF retains a key structural requirement: generating sigma points requires a Cholesky factorisation $P = LL^\top$ of the process covariance matrix at every time step. This factorisation is only possible when $P$ is positive definite. In the knowledge transfer setting, large innovations produce large Kalman gains, and the posterior covariance update $P^{+} = (I - KH)P(I - KH)^\top + KRK^\top$ (the Joseph form, used to improve numerical stability) can still yield near-singular $P^{+}$ when the gain is extreme and $P$ is high-dimensional. Once $P^{+}$ becomes near-singular or indefinite — even by floating-point rounding — the subsequent Cholesky factorisation fails and the filter cannot proceed.
+
+This failure mode is not a consequence of poor tuning but is an inherent structural limitation: the UKF is designed to operate as a noise filter or soft sensor for systems near their nominal operating point, where model-measurement discrepancies are small. The knowledge transfer problem violates this assumption by design — the entire purpose is to adapt a model that is structurally mismatched with the target system.
+
+\subsection*{Why the EnKF is Robust in the Knowledge Transfer Setting}
+
+The EnKF replaces the analytical covariance with a Monte Carlo ensemble of $N$ model realisations. The sample covariance used in the Kalman update is computed as:
+\begin{equation}
+    P \approx \frac{1}{N-1} \sum_{i=1}^{N} (x_i - \bar{x})(x_i - \bar{x})^\top
+\end{equation}
+This matrix is positive semi-definite by construction — it is an outer product sum and therefore has non-negative eigenvalues regardless of the magnitude of innovations or the model-measurement discrepancy. No Cholesky factorisation is required at any point in the algorithm.
+
+Three additional properties make the EnKF particularly suited to this problem:
+
+\begin{enumerate}
+    \item \textbf{Ensemble diversity as implicit regularisation.} With a finite ensemble of $N$ members, the sample covariance is rank-$(N-1)$. This inherent rank deficiency acts as a natural regulariser, preventing the kind of ill-conditioning that accumulates in the full-rank exact covariance maintained by the EKF and UKF.
+
+    \item \textbf{Distributed correction under large innovations.} When model predictions are far from measurements, each ensemble member is individually corrected toward the observations. Because observations are independently perturbed for each member in the stochastic EnKF formulation, the ensemble retains spread after the update, avoiding the covariance collapse that drives the Cholesky failure in UKF.
+
+    \item \textbf{No Jacobian required.} The EnKF propagates ensemble members through the full nonlinear model, capturing nonlinear dynamics including feeding-event discontinuities without any linearisation. The ensemble implicitly captures the non-Gaussian response of the system to these events.
+\end{enumerate}
+
+\subsection*{Implicit Parameter Sensitivity from Ensemble Spread Reduction}
+
+Beyond estimation robustness, the EnKF ensemble provides a data-conditioned analogue to global sensitivity analysis (GSA). In formal GSA, parameter sensitivity is measured by the change in model output variance attributable to variation in each parameter across the full parameter space. In the EnKF, parameters that are strongly constrained by the incoming measurements exhibit rapid spread reduction in their posterior ensemble — the filter acquires high confidence about their values because they are directly influential on the observed states. Parameters to which the observed states are insensitive retain broad ensemble spread throughout the culture.
+
+This is conceptually related to but distinct from GSA. GSA is a model-level, data-independent analysis that measures global output sensitivity. EnKF spread reduction is a data-conditioned, operating-point-specific measure of practical identifiability — it reflects which parameters the available measurements can resolve under the actual process conditions. These two measures tend to agree for the most influential parameters (parameters with high global sensitivity are generally more identifiable from output data), but they are not equivalent: a parameter can be globally sensitive yet locally non-identifiable if the measurement schedule does not capture the time window during which it is most active, or if it is strongly correlated with another parameter.
+
+The observation that the parameters showing the strongest posterior convergence in this work — growth-rate-linked parameters and lactate kinetic constants — broadly correspond to those identified as most influential by sensitivity analysis in related CHO mechanistic models \cite{Kotidis2019UseCultures} supports this interpretation. This correspondence does not imply that EnKF replaces GSA as a systematic identifiability tool, but it demonstrates that the dynamic evolution of the parameter ensemble provides meaningful, data-grounded insight into model sensitivity under the specific conditions of each new process system.
+}
