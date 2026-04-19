@@ -5,5 +5,5 @@ done - check all rmse table, is it really RMSE or MAE?
 done - change the ticks to every two days for overlay figures
 done - Irregular schedule error table
 read text in SI D and E 
-check the sensitivity analysis comparison with Kotidis 2019, run the results
-check Lacmax 1 and 2 convergence mean value
+done - check the sensitivity analysis comparison with Kotidis 2019, run the results
+done -check Lacmax 1 and 2 convergence mean value

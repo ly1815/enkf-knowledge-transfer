@@ -1,6 +1,6 @@
 \label{SI:priorcov}
 {\color{blue}
-To assess the sensitivity of the EnKF to the choice of prior parameter covariance width, the nominal covariance matrix $\Sigma_0^\theta$ was scaled by factors of $0.5\times$, $1.0\times$, $1.5\times$, and $2.0\times$, and the filter was re-run for all six datasets using the best-tuned ensemble size for each. Figures~\ref{fig:priorcov_A_flask}--\ref{fig:priorcov_B_pl40} show the resulting state trajectories alongside experimental data for each dataset. The $1.0\times$ case corresponds to the nominal results presented in the main body and is stable by definition. Table~\ref{tab:priorcov_stability} summarises per-state stability: a state is flagged as unstable (\ding{55}) if its trajectory deviates from the $1.0\times$ reference by more than 50\% of the experimental maximum for that state at any point in the simulation. The $0.5\times$ setting remains stable across all datasets. Instabilities arise at $2.0\times$ for several metabolite states, particularly in the Cell Line B datasets, while the $1.5\times$ setting only affects asparagine in the Cell Line A Bioreactor 32\textdegree C condition.
+To assess the sensitivity of the EnKF to the choice of prior parameter covariance width, the nominal covariance matrix $\Sigma_0^\theta$ was scaled by factors of $0.5\times$, $1.0\times$, $1.5\times$, and $2.0\times$, and the filter was re-run for all six datasets using the best-tuned ensemble size for each. Figures~\ref{fig:priorcov_A_flask}--\ref{fig:priorcov_B_pl40} show the resulting state trajectories alongside experimental data for each dataset. Table~\ref{tab:priorcov_stability} summarises per-state stability. The $1.0\times$ case corresponds to the nominal results presented in the main body. The $0.5\times$ setting remains stable across all datasets. Instabilities arise at $2.0\times$ for several metabolite states, particularly in the Cell Line B datasets, while the $1.5\times$ setting only affects asparagine in the Cell Line A Bioreactor 32\textdegree C condition.
 }
 
 \begin{figure}[H]
@@ -56,7 +56,7 @@ To assess the sensitivity of the EnKF to the choice of prior parameter covarianc
 \renewcommand{\arraystretch}{1.3}
 \small
 \setlength{\tabcolsep}{3pt}
-\caption{\rev{Per-state EnKF stability under different prior covariance widths for all six datasets. Green cells indicate a stable trajectory; red cells indicate that the trajectory deviates from the $1.0\times$ baseline by more than 50\% of the experimental maximum for that state at any simulation point. The $1.0\times$ column is the nominal case used throughout the paper and is stable by definition.}}
+\caption{\rev{Per-state EnKF stability under different prior covariance widths for all six datasets. Green cells indicate a stable trajectory; red cells indicate an unstable trajectory. The $1.0\times$ column is the nominal case used throughout the paper, corresponding to the prior covariance values reported in SI Section~F and used in the EnKF parameter estimation.}}
 \label{tab:priorcov_stability}
 \arrayrulecolor{black}
 \adjustbox{max width=\textwidth}{%
