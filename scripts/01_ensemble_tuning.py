@@ -51,7 +51,7 @@ if LOAD_FROM_PKL:
     volume_results                              = load_pkl('volume_results.pkl')
     simulation_results                          = load_pkl('simulation_results.pkl')
     ensemble_tuning                             = load_pkl('ensemble_tuning.pkl')
-    rmse_results                                = load_pkl('rmse_results.pkl')
+    mae_results                                = load_pkl('mae_results.pkl')
     computation_times                           = load_pkl('computation_times.pkl')
     PX_records_all                              = load_pkl('PX_records_all.pkl')
     para_records_all                            = load_pkl('para_records_all.pkl')
@@ -73,7 +73,7 @@ else:
     # ── EnKF tuning sweep ─────────────────────────────────────────────────────
     print(f"\nRunning EnKF sweep over ensemble sizes: {TUNING_ENSEMBLE_SIZES}")
     (ensemble_tuning,
-     rmse_results,
+     mae_results,
      computation_times,
      PX_records_all,
      para_records_all,
@@ -89,7 +89,7 @@ else:
     # ── Save results ──────────────────────────────────────────────────────────
     print("\nSaving results ...")
     save_pkl(ensemble_tuning,                         'ensemble_tuning.pkl')
-    save_pkl(rmse_results,                            'rmse_results.pkl')
+    save_pkl(mae_results,                            'mae_results.pkl')
     save_pkl(computation_times,                       'computation_times.pkl')
     save_pkl(PX_records_all,                          'PX_records_all.pkl')
     save_pkl(para_records_all,                        'para_records_all.pkl')
@@ -101,13 +101,13 @@ else:
     save_pkl(KQ_DICT,                                 'kQ_dict.pkl')
     save_pkl(KR_DICT,                                 'kR_dict.pkl')
 
-# ── Figure A: Ensemble size tuning (RMSE + runtime) ───────────────────────────
-print("\n[A] Ensemble tuning RMSE/runtime ...")
-pl.plot_rmse_variance_and_computation_time_all(
-    rmse_results, computation_times,
+# ── Figure A: Ensemble size tuning (MAE + runtime) ───────────────────────────
+print("\n[A] Ensemble tuning MAE/runtime ...")
+pl.plot_mae_variance_and_computation_time_all(
+    mae_results, computation_times,
     datasets_to_include=list(BEST_ENSEMBLE_SIZES.keys()),
     custom_titles=CUSTOM_TITLES,
-    colours={"rmse": "#C0392B", "std": "#2980B9", "runtime": "#27AE60"},
+    colours={"mae": "#C0392B", "std": "#2980B9", "runtime": "#27AE60"},
     save_path=fig_path("ensemble_tuning.png"),
 )
 

@@ -195,4 +195,35 @@ conv_df = compute_overall_convergence_table(dataset_info, datasets, PX_records_b
 with pd.option_context('display.width', None, 'display.max_columns', None):
     print(conv_df.to_string())
 
+# ── Final converged parameter values (posterior ensemble mean) ────────────────
+print("\n--- Final Converged Parameter Values (Posterior Mean) ---")
+ds_order = [
+    'CHO_T127_flask_PMJ', 'CHO_T127_SNS_36.5', 'CHO_T127_SNS_32',
+    'CHO_GS46_F_C_Inv', 'CHO_GS46_F_all', 'CHO_GS46_F_all_pl40',
+]
+short_names = {
+    'CHO_T127_flask_PMJ':  'A-Flask',
+    'CHO_T127_SNS_36.5':   'A-Bio36',
+    'CHO_T127_SNS_32':     'A-Bio32',
+    'CHO_GS46_F_C_Inv':    'B-FeedC',
+    'CHO_GS46_F_all':      'B-FeedU',
+    'CHO_GS46_F_all_pl40': 'B-FeedU+',
+}
+
+header = f"{'Parameter':<12}  {'Prior':>10}"
+for ds_name in ds_order:
+    header += f"  {short_names[ds_name]:>10}"
+print(header)
+print("-" * len(header))
+
+for key in PARAMETER_KEYS:
+    prior_val = MEAN_PARAMETERS[key]
+    row = f"{key:<12}  {prior_val:>10.4g}"
+    for ds_name in ds_order:
+        best_n = BEST_ENSEMBLE_SIZES[ds_name]
+        ensemble = PX_records_best[ds_name][best_n][-1]  # final update
+        vals = [member[key] for member in ensemble]
+        row += f"  {np.mean(vals):>10.4g}"
+    print(row)
+
 print("\nStep 2 complete.")

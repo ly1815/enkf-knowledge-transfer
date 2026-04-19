@@ -1,9 +1,9 @@
-regenerate the ensemble tuning figure
-change the naming convention of run 2 results to ensure smooth loading
-cross check all config parameter setting for run 2 and update values in report
-check all rmse table, is it really RMSE or MAE? 
-Irregular schedule error table, percentage 
+done - regenerate the ensemble tuning figure
+done - change the naming convention of run 2 results to ensure smooth loading
+done - cross check all config parameter setting for run 2 and update values in report
+done - check all rmse table, is it really RMSE or MAE? 
+done - change the ticks to every two days for overlay figures
+done - Irregular schedule error table
 read text in SI D and E 
 check the sensitivity analysis comparison with Kotidis 2019, run the results
-done - change the ticks to every two days for overlay figures
 check Lacmax 1 and 2 convergence mean value
