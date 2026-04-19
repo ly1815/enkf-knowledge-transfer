@@ -11,13 +11,12 @@ Figure~\ref{fig:enkf_vs_reparam} compares the EnKF state estimation trajectory a
 \rowcolors{3}{gray!15}{white}
 \caption{\rev{Per-state MAE for the EnKF and the reparametrised open-loop model on Cell Line B Feed C. The reparametrised model uses parameters optimised offline on the full dataset; the EnKF adapts recursively from Cell Line A base parameters without dataset-specific reparametrisation.}}
 \label{tab:enkf_vs_reparam}
-\newlength{\colW}\setlength{\colW}{3.2cm}
-\begin{tabular}{|l|p{\colW}|p{\colW}|}
+\newlength{\compColW}\setlength{\compColW}{3.2cm}
+\begin{tabular}{|l|p{\compColW}|p{\compColW}|}
 \hline
 \rowcolor{white}
-\multirow{2}{*}{\textbf{State}} &
-\multicolumn{2}{c|}{\textbf{MAE}} \\
-\cline{2-3}
+\textbf{State} & \multicolumn{2}{c|}{\textbf{MAE}} \\
+\hline
 \rowcolor{white}
  & \centering \textbf{EnKF} & \centering\arraybackslash \textbf{Reparametrised Model} \\
 \hline
@@ -39,30 +38,3 @@ Asn (mM)              & \centering $0.4396$            & \centering\arraybacksla
     \caption{\rev{Comparison of EnKF state estimation (solid green), reparametrised open-loop simulation (dashed blue), and nominal Kotidis \textit{et al.}~\cite{Kotidis2019Model-basedCulture} model (solid red) against experimental measurements (markers, $\pm$standard deviation) for Cell Line B Feed C. The reparametrised model uses parameters optimised offline on the full dataset; the EnKF begins from Cell Line A base parameters and adapts recursively without dataset-specific reparametrisation.}}
     \label{fig:enkf_vs_reparam}
 \end{figure}
-
-{\color{blue}
-Table~\ref{tab:param_overlap} compares the ten most-converging EnKF parameters (ranked by ensemble spread reduction across all six datasets) with the ten parameters identified by global sensitivity analysis (GSA) and subsequently re-estimated by Kotidis \textit{et al.}~\cite{Kotidis2019UseCultures} for Cell Line B. Seven of the ten parameters overlap, despite the EnKF receiving no prior sensitivity information — it identifies the dominant parameter subspace purely from sequential data assimilation. Both methods flag the core growth ($\mu_{\text{max}}$), lactate switching ($Lac_{\text{max1}}$, $Lac_{\text{max2}}$), and amino acid yield ($Y_{X,\text{Asn}}$, $Y_{X,\text{Glu}}$, $Y_{X,\text{Amm}}$) parameters as requiring adaptation for cross-cell-line transfer. Each method additionally identifies one mAb-production parameter, though a different one: $m_{\text{mAb}}$ (maintenance-associated) via GSA versus $Y_{\text{mAb},\mu}$ (growth-associated) via EnKF. The three EnKF-only parameters ($Y_{X,\text{Lac}}$, $Y_{\text{mAb},\mu}$, $K_{\text{Asn}}$) relate to product formation and substrate affinity — sensitivities that may emerge from the time-resolved nature of the EnKF update but are less visible to a variance-based GSA evaluated at steady state. Conversely, the GSA-only parameters ($Y_{X,\text{Glc}}$, $Y_{X,\text{Gln}}$) reflect global input--output sensitivity that the EnKF, constrained by the specific measurement trajectory, does not rank as highly. This 70\% agreement supports the claim that the EnKF can largely bypass the traditional GSA--reparametrisation workflow while arriving at a consistent set of influential parameters.
-}
-
-\begin{table}[ht]
-\centering
-\renewcommand{\arraystretch}{1.3}
-\small
-\setlength{\tabcolsep}{8pt}
-\caption{\rev{Overlap between the ten most-converging EnKF parameters (by ensemble spread reduction) and the ten GSA-identified parameters re-estimated by Kotidis \textit{et al.}~\cite{Kotidis2019UseCultures} for Cell Line B. Seven parameters are shared (70\% overlap).}}
-\label{tab:param_overlap}
-\begin{tabular}{|l|l|l|}
-\hline
-\rowcolor{gray!30}
-\textbf{GSA only (3)} & \textbf{Shared (7)} & \textbf{EnKF only (3)} \\
-\hline
-$Y_{X,\text{Glc}}$ & $\mu_{\text{max}}$      & $Y_{X,\text{Lac}}$ \\
-$Y_{X,\text{Gln}}$ & $Lac_{\text{max1}}$     & $Y_{\text{mAb},\mu}$ \\
-$m_{\text{mAb}}$    & $Lac_{\text{max2}}$     & $K_{\text{Asn}}$ \\
-                     & $Y_{X,\text{Glu}}$     & \\
-                     & $Y_{X,\text{Amm}}$     & \\
-                     & $m_{\text{Glc}}$        & \\
-                     & $Y_{X,\text{Asn}}$     & \\
-\hline
-\end{tabular}
-\end{table}
