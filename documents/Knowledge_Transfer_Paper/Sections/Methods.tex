@@ -50,21 +50,24 @@ The ensemble is initialised at $t = 0$ with \rev{$N$} members, each obtained by 
 \end{equation}
 where $x_t^i \in \mathbb{R}^{n_x}$ is the state vector and $\theta_t^i \in \mathbb{R}^{n_\theta}$ is the parameter vector for the $i$th ensemble member, and $i = 1,2,\dots,\rev{N}$. Superscripts $-$ and $+$ denote \rev{pre- and post-measurement update} estimates, respectively. \rev{$P_{t=0}^{xx} \in \mathbb{R}^{n_x \times n_x}$ and $P_{t=0}^{\theta\theta} \in \mathbb{R}^{n_\theta \times n_\theta}$ denote the initial state and parameter covariance matrices, respectively. The process noise covariance $Q \in \mathbb{R}^{n_x \times n_x}$ captures process uncertainties, while the measurement noise covariance $R \in \mathbb{R}^{n_x \times n_x}$ represents observation uncertainty. Here, all eight state variables are measured at each sampling time, so the observation operator is the identity ($H = I_{n_x}$) and $n_z = n_x$ throughout. }
 
-The mechanistic model is based on Kotidis \textit{et al.} (2019), with published parameter values used as the prior mean. For each dataset, the initial ensemble covariance reflects dataset-specific uncertainty in parameters and states. The ensemble of prior states evolves through the model using the prior parameter ensemble, with Gaussian-distributed process noise added to account for model uncertainty:
-\begin{equation}
-{\color{blue}x_{t+1}^{i-}=f\left(x_t^{i+},\theta_{t+1}^{i-}\right)+\varepsilon_t^i,\quad
-\varepsilon_t^i\sim \mathcal{N}(0, Q)}
-\label{prior_pred}
-\end{equation}
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{Figs/enkf_schematic.png}
     \caption{\rev{Schematic of the dual EnKF framework for state and parameter estimation. Ensembles of model states and parameters, initialised from prior distributions, are propagated through the mechanistic model and sequentially updated upon arrival of new measurements, progressively reducing uncertainty and refining both state and parameter estimates throughout the culture.}}
     \label{fig:enkf_schematic}
     \end{figure} 
+    
 
-The mechanistic model is numerically integrated with a fine internal time step to capture system dynamics continuously, while measurement updates occur only when experimental data become available, typically once per day in fed-batch cultures. When off-line measurements are obtained, the reported experimental mean is used as the central value, and an observation ensemble is generated to reflect the associated measurement uncertainty \cite{Evensen2022DataProblem}:
+
+The mechanisticmodel used in this study is based on Kotidis \textit{et al.} (2019), with published parameter values used as the prior mean. For each dataset, the initial ensemble covariance reflects dataset-specific uncertainty in parameters and states. The ensemble of prior states evolves through the model using the prior parameter ensemble, with Gaussian-distributed process noise added to account for model uncertainty:
+\begin{equation}
+{\color{blue}x_{t+1}^{i-}=f\left(x_t^{i+},\theta_{t+1}^{i-}\right)+\varepsilon_t^i,\quad
+\varepsilon_t^i\sim \mathcal{N}(0, Q)}
+\label{prior_pred}
+\end{equation}
+
+
+The model is numerically integrated with a fine internal time step to capture system dynamics continuously, while measurement updates occur only when experimental data become available, typically once per day in fed-batch cultures. When off-line measurements are obtained, the reported experimental mean is used as the central value, and an observation ensemble is generated to reflect the associated measurement uncertainty \cite{Evensen2022DataProblem}:
 \setlength{\abovedisplayskip}{3pt}
 \setlength{\belowdisplayskip}{3pt}
 \begin{equation}
@@ -104,6 +107,9 @@ x_{t+1}^{i+} = x_{t+1}^{i-} + K_{t+1}^x(z_{t+1}^i - x_{t+1}^{i-})
 {\color{blue}K_{t+1}^x = P_{t+1}^{xx} (P_{t+1}^{xx} + R)^{-1}}
 \label{states_gain}
 \end{equation}
+
+
+In this work, a dual estimation structure was adopted instead of a fully joint formulation in which states and parameters are concatenated into a single augmented vector. In the state update, stochastic process noise is explicitly introduced at each propagation step to capture model uncertainty, effectively inflating the covariance matrix dynamically. For parameters, no artificial noise is injected, ensuring that changes in ensemble spread reflect genuine information gain from experimental data rather than covariance inflation. By maintaining separate ensembles, state propagation remains numerically stable while parameter evolution can retain a relatively large initial covariance to permit adaptive learning. If a large initial covariance were assigned to the augmented state-parameter vector, the resulting integration would become computationally unstable and inefficient due to the need for repeated numerical integration with overly dispersed trajectories. This separation therefore facilitates both stable computation and biologically interpretable parameter trajectories. \rev{The complete sequential update procedure is summarised in Figure~\ref{fig:enkf_workflow}.}
 
 \begin{figure}[H]
     \begin{center}
@@ -226,9 +232,6 @@ x_{t+1}^{i+} = x_{t+1}^{i-} + K_{t+1}^x(z_{t+1}^i - x_{t+1}^{i-})
     \caption{\rev{Step-by-step workflow of the dual EnKF algorithm, covering ensemble initialisation, model-based prediction, and sequential measurement update via the Kalman gain. The prediction and update cycle repeats at each measurement time point, enabling recursive refinement of both state estimates and model parameters throughout the fed-batch culture.}}
     \label{fig:enkf_workflow}
 \end{figure}
-
-In this work, a dual estimation structure was adopted instead of a fully joint formulation in which states and parameters are concatenated into a single augmented vector. In the state update, stochastic process noise is explicitly introduced at each propagation step to capture model uncertainty, effectively inflating the covariance matrix dynamically. For parameters, no artificial noise is injected, ensuring that changes in ensemble spread reflect genuine information gain from experimental data rather than covariance inflation. By maintaining separate ensembles, state propagation remains numerically stable while parameter evolution can retain a relatively large initial covariance to permit adaptive learning. If a large initial covariance were assigned to the augmented state-parameter vector, the resulting integration would become computationally unstable and inefficient due to the need for repeated numerical integration with overly dispersed trajectories. This separation therefore facilitates both stable computation and biologically interpretable parameter trajectories. \rev{The complete sequential update procedure is summarised in Figure~\ref{fig:enkf_workflow}.}
-
 
 
 \subsection{EnKF Uncertainty Quantification}
