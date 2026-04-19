@@ -1,7 +1,7 @@
 \label{SI:param_corr}
-Figure~\ref{fig:param_corr} and Table~\ref{tab:param_corr} report the posterior parameter correlation matrices and pairs exceeding $|r|>0.7$ across all six datasets, computed from the final parameter ensemble. Of the 276 pairwise combinations evaluated per dataset, only $Lac_{\max1}$ and $Lac_{\max2}$ exceed this threshold, in three datasets: Cell Line A shake flask, Cell Line A bioreactor 36.5\,°C, and Cell Line B Feed C.
+Figure~\ref{fig:param_corr} and Table~\ref{tab:param_corr} report the posterior parameter correlation matrices computed from the final parameter ensemble across all six datasets. Of the 276 pairwise combinations per dataset, only $Lac_{\max1}$--$Lac_{\max2}$ exceeds the $|r|>0.7$ threshold, in three datasets.
 
-The two parameters appear in the lactate-specific rate as:
+The two parameters govern the lactate-specific rate:
 \begin{equation}
     \frac{d(V[\mathrm{Lac}])}{dt} = q_{\mathrm{Lac}}\,V X_v - F_{\mathrm{out}}[\mathrm{Lac}]
 \end{equation}
@@ -10,11 +10,28 @@ The two parameters appear in the lactate-specific rate as:
 \end{equation}
 \noindent where $[\mathrm{Lac}]$ (mM) is the extracellular lactate concentration, $q_{\mathrm{Lac}}$ (mmol\,cell$^{-1}$\,h$^{-1}$) is the specific lactate rate, $X_v$ (cell\,L$^{-1}$) is the viable cell density, $F_{\mathrm{out}}$ (L\,h$^{-1}$) is the sampling flow rate, $\mu$ (h$^{-1}$) is the specific growth rate, $Y_{X/Lac}$ (cell\,mmol$^{-1}$) is the yield of biomass on lactate, $Y_{Lac/Glc}$ (mmol\,mmol$^{-1}$) is the yield of lactate from glucose through glycolysis and pyruvate synthesis, $q_{Glc}$ (mmol\,cell$^{-1}$\,h$^{-1}$) is the specific glucose consumption rate, $Lac_{\max1}$ and $Lac_{\max2}$ (mM) are the activation constants for lactate consumption with nominal values of 21.20 and 16.00\,mM respectively, and $m_{Lac}$ (mmol\,cell$^{-1}$\,h$^{-1}$) is the maintenance coefficient for lactate participation in other metabolic pathways.
 
-The first term in $q_{\mathrm{Lac}}$ represents the growth-associated flux, modulated by the saturation factor $(Lac_{\max1} - [\mathrm{Lac}])/Lac_{\max1}$, which depends on the time-varying quantity $(\mu/Y_{X/Lac} - Y_{Lac/Glc}\,q_{Glc})$. The second term represents the maintenance flux, modulated by $(Lac_{\max2} - [\mathrm{Lac}])/Lac_{\max2}$ scaled by the constant rate $m_{Lac}$. Because the two terms are modulated by functionally distinct quantities with different temporal dynamics, $Lac_{\max1}$ and $Lac_{\max2}$ are in principle structurally identifiable from the observed lactate trajectory. With the nominal threshold values of 21.20 and 16.00\,mM, however, both saturation factors are substantially active across the observed $[\mathrm{Lac}]$ range. A higher $Lac_{\max1}$ reduces the suppression of the growth-associated term, while a lower $Lac_{\max2}$ accelerates the sign change of the maintenance term toward net consumption. These opposing adjustments can produce similar net $q_{\mathrm{Lac}}$ trajectories, giving rise to the strong negative posterior correlation.
+The first term represents the growth-associated flux, modulated by $(Lac_{\max1} - [\mathrm{Lac}])/Lac_{\max1}$; the second represents the maintenance flux, modulated by $(Lac_{\max2} - [\mathrm{Lac}])/Lac_{\max2}$ and scaled by $m_{Lac}$. Although the two terms are driven by functionally distinct quantities, making $Lac_{\max1}$ and $Lac_{\max2}$ structurally identifiable in principle, their saturation factors respond similarly when $[\mathrm{Lac}]$ remains well below both thresholds. A compensating shift — higher $Lac_{\max1}$ reducing suppression of the growth term, lower $Lac_{\max2}$ accelerating the maintenance sign change — can produce near-identical net $q_{\mathrm{Lac}}$ trajectories, giving rise to a strong negative posterior correlation.
 
-The practical identifiability of the two parameters therefore depends on the dynamic range traversed by $[\mathrm{Lac}]$ throughout the culture. Cell Line A shake flask and Cell Line A bioreactor 36.5\,°C exhibit net lactate accumulation throughout (correlation coefficients $r = -0.740$ and $r = -0.750$, respectively), with $[\mathrm{Lac}]$ evolving gradually such that the two saturation terms respond similarly and the parameter degeneracy persists. In datasets with steep net lactate consumption, namely the 32\,°C bioreactor, Feed U, and Feed U plus 40\%, $[\mathrm{Lac}]$ traverses a wider dynamic range and the two saturation factors, with activation thresholds of 16.00 and 21.20\,mM, diverge at different rates and provide sufficient differential response to resolve the two parameters. Cell Line B Feed C shows eventual net consumption, but the transition is delayed and gradual comparing to the other net lactate consumption datasets. The differential response between the two saturation terms remains insufficient to break the compensation, and the correlation persists (correlation coefficient $r = -0.733$).
+Whether this degeneracy persists depends on the dynamic range of $[\mathrm{Lac}]$. In net-accumulation datasets (Cell Line A shake flask, $r=-0.740$; Cell Line A bioreactor 36.5\,°C, $r=-0.750$), lactate evolves gradually and the two saturation terms remain jointly compensable. In datasets with steep net consumption (32\,°C bioreactor, Feed U, Feed U plus 40\%), $[\mathrm{Lac}]$ traverses a wider range, the saturation factors diverge, and the correlation drops below 0.7. Cell Line B Feed C ($r=-0.733$) shows eventual net consumption, but the transition is sufficiently delayed that the compensation persists.
 
-In this specific case, the EnKF ensemble mean for Cell Line B Feed C converges to $Lac_{\max1} \approx$ \textbf{[PLACEHOLDER]} mM and $Lac_{\max2} \approx$ \textbf{[PLACEHOLDER]} mM, consistent with the values of 18.55 and 7.14\,mM obtained from the reparametrised model~\cite{Kotidis2019UseCultures}. This agreement, despite the strong posterior correlation, suggests that the observed lactate dynamics are sufficiently informative to constrain the net effect of the two parameters on $q_{\mathrm{Lac}}$, even when their individual contributions cannot be fully separated. Since state estimation depends on this net effect rather than on individual parameter values, it remains robust to the correlation. Caution is nonetheless warranted when interpreting individual parameter estimates in the presence of strong posterior correlation.
+Despite the correlation, the EnKF posterior means for Cell Line B Feed C shift in the same direction as — and are comparable in magnitude to — the values obtained from bespoke GS46 reparametrisation by Kotidis \textit{et al.}~\cite{Kotidis2019UseCultures} (Table~\ref{tab:lacmax_comparison}). Both values decrease from the Cell Line A prior, consistent with Cell Line B exhibiting earlier onset of net lactate consumption. This directional agreement indicates that the observed lactate dynamics constrain the net effect of the two parameters on $q_{\mathrm{Lac}}$, even when their individual contributions cannot be fully separated. Since state estimation depends on this net effect rather than on individual parameter values, it remains robust to the correlation.
+
+\begin{table}[ht]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\small
+\caption{\rev{Comparison of $Lac_{\max1}$ and $Lac_{\max2}$ values (mM) for Cell Line B Feed C: nominal prior from Cell Line A~\cite{Kotidis2019Model-basedCulture}, EnKF posterior mean, and reparametrised GS46 values from Kotidis \textit{et al.}~\cite{Kotidis2019UseCultures}. Both the EnKF and the reparametrised model shift both parameters downward from the prior, reflecting earlier onset of net lactate consumption in Cell Line B.}}
+\label{tab:lacmax_comparison}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\rowcolor{gray!30}
+\textbf{Parameter} & \textbf{Prior (Cell Line A)} & \textbf{EnKF posterior} & \textbf{Reparametrised (GS46)} \\
+\hline
+$Lac_{\max1}$ & 21.20 & 17.43 & 18.55 \\
+$Lac_{\max2}$ & 16.00 & 5.65 & 7.14 \\
+\hline
+\end{tabular}
+\end{table}
 
 \begin{table}[ht]
 \centering

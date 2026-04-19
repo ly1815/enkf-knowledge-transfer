@@ -39,14 +39,14 @@ def _shade(base_color, n, l_lo=0.25, l_hi=0.78):
             for lv in np.linspace(l_lo, l_hi, n)]
 
 
-def _compute_state_scales(rmse_dict, eps=1e-12):
-    all_rmse = np.concatenate(list(rmse_dict.values()), axis=0)
-    return np.maximum(np.median(all_rmse, axis=0), eps)
+def _compute_state_scales(mae_dict, eps=1e-12):
+    all_mae = np.concatenate(list(mae_dict.values()), axis=0)
+    return np.maximum(np.median(all_mae, axis=0), eps)
 
 
 # ─── Ensemble tuning ────────────────────────────────────────────────────────
 
-def plot_rmse_variance_and_computation_time_all(rmse_results, computation_times,
+def plot_mae_variance_and_computation_time_all(mae_results, computation_times,
                                                  datasets_to_include=None,
                                                  exclude_ensemble_sizes=None,
                                                  custom_titles=None,
@@ -55,16 +55,16 @@ def plot_rmse_variance_and_computation_time_all(rmse_results, computation_times,
                                                  save_path=None):
     """Plot normalised RMSE and runtime vs ensemble size for each dataset.
 
-    colours : dict with keys 'rmse', 'std', 'runtime' (optional).
+    colours : dict with keys 'mae', 'std', 'runtime' (optional).
     """
     if exclude_ensemble_sizes is None:
         exclude_ensemble_sizes = []
     if datasets_to_include is None:
-        datasets_to_include = list(rmse_results.keys())
+        datasets_to_include = list(mae_results.keys())
     if custom_titles is None:
         custom_titles = {ds: ds for ds in datasets_to_include}
     if colours is None:
-        colours = {"rmse": "maroon", "std": "midnightblue", "runtime": "darkgreen"}
+        colours = {"mae": "maroon", "std": "midnightblue", "runtime": "darkgreen"}
 
     n_plots = len(datasets_to_include)
     ncols   = min(n_plots, 3)
@@ -77,7 +77,7 @@ def plot_rmse_variance_and_computation_time_all(rmse_results, computation_times,
 
     for idx, ds_name in enumerate(datasets_to_include):
         ax1   = axes[idx]
-        scales = _compute_state_scales(rmse_results[ds_name])
+        scales = _compute_state_scales(mae_results[ds_name])
         if weights is not None:
             w = np.asarray(weights, dtype=float)
             w = w / w.sum()
@@ -85,21 +85,21 @@ def plot_rmse_variance_and_computation_time_all(rmse_results, computation_times,
             w = None
 
         ens_sizes, scores, stds, times = [], [], [], []
-        for ens, rmse in rmse_results[ds_name].items():
+        for ens, mae in mae_results[ds_name].items():
             if ens in exclude_ensemble_sizes:
                 continue
-            rmse_norm = rmse / scales
-            per_run   = (np.mean(rmse_norm, axis=1) if w is None
-                         else np.sum(rmse_norm * w[None, :], axis=1))
+            mae_norm = mae / scales
+            per_run  = (np.mean(mae_norm, axis=1) if w is None
+                        else np.sum(mae_norm * w[None, :], axis=1))
             ens_sizes.append(ens)
             scores.append(float(np.mean(per_run)))
             stds.append(float(np.std(per_run)))
             times.append(computation_times[ds_name][ens])
 
-        ax1.plot(ens_sizes, scores, marker="o", color=colours["rmse"],
-                 markersize=10, linewidth=3, label="Overall normalised RMSE")
+        ax1.plot(ens_sizes, scores, marker="o", color=colours["mae"],
+                 markersize=10, linewidth=3, label="Overall normalised MAE")
         ax1.plot(ens_sizes, stds, marker="s", linestyle="--", color=colours["std"],
-                 markersize=10, linewidth=3, label="Std of normalised RMSE")
+                 markersize=10, linewidth=3, label="Std of normalised MAE")
         ax1.set_xticks(ens_sizes)
         ax1.set_xlabel("Ensemble Size", fontsize=16, fontweight="bold", labelpad=15)
         ax1.set_ylabel("Normalised error metrics", fontsize=16, fontweight="bold", labelpad=15)
@@ -128,7 +128,7 @@ def plot_rmse_variance_and_computation_time_all(rmse_results, computation_times,
         fig.delaxes(axes[j])
 
     legend_elements = [
-        Line2D([0], [0], marker="o", color=colours["rmse"], lw=4, markersize=10,
+        Line2D([0], [0], marker="o", color=colours["mae"], lw=4, markersize=10,
                label="Overall normalised MAE (all states)"),
         Line2D([0], [0], marker="s", color=colours["std"], linestyle="--",
                lw=4, markersize=10, label="Std of normalised MAE"),

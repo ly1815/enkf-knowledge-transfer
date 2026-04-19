@@ -95,7 +95,7 @@ else:
     reparam_sim = reparam_results[DS]['full_simulation']
     save_pkl(reparam_sim, 'reparam_sim.pkl')
 
-# ── RMSE comparison ───────────────────────────────────────────────────────────
+# ── MAE comparison ────────────────────────────────────────────────────────────
 exp_meas = datasets[DS]['exp_meas']
 exp_vals = exp_meas.iloc[:, 1:9].values
 dt_kf    = 0.01
@@ -113,7 +113,7 @@ def _r2(pred, obs):
     ss_tot = np.sum((obs - np.mean(obs)) ** 2)
     return float(1 - ss_res / ss_tot) if ss_tot > 0 else float('nan')
 
-print("\n--- RMSE per state ---")
+print("\n--- MAE per state ---")
 header = f"{'State':<8}  {'EnKF':>12}  {'Reparametrised':>16}  {'Nominal':>10}"
 print(header)
 print("-" * len(header))
@@ -124,13 +124,13 @@ for i, sname in enumerate(STATE_NAMES):
     valid = ~np.isnan(obs)
     if not valid.any():
         continue
-    rmse_enkf    = float(np.sqrt(np.mean((enkf_at_obs[valid, i]    - obs[valid]) ** 2)))
-    rmse_reparam = float(np.sqrt(np.mean((reparam_at_obs[valid, i] - obs[valid]) ** 2)))
-    rmse_nominal = float(np.sqrt(np.mean((nominal_at_obs[valid, i] - obs[valid]) ** 2)))
-    print(f"{sname:<8}  {rmse_enkf:>12.4g}  {rmse_reparam:>16.4g}  {rmse_nominal:>10.4g}")
-    overall_enkf.append(rmse_enkf)
-    overall_reparam.append(rmse_reparam)
-    overall_nominal.append(rmse_nominal)
+    mae_enkf    = float(np.mean(np.abs(enkf_at_obs[valid, i]    - obs[valid])))
+    mae_reparam = float(np.mean(np.abs(reparam_at_obs[valid, i] - obs[valid])))
+    mae_nominal = float(np.mean(np.abs(nominal_at_obs[valid, i] - obs[valid])))
+    print(f"{sname:<8}  {mae_enkf:>12.4g}  {mae_reparam:>16.4g}  {mae_nominal:>10.4g}")
+    overall_enkf.append(mae_enkf)
+    overall_reparam.append(mae_reparam)
+    overall_nominal.append(mae_nominal)
 
 print("-" * len(header))
 print(f"{'Mean':<8}  {np.mean(overall_enkf):>12.4g}  "

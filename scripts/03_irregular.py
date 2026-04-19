@@ -165,4 +165,75 @@ pl.overlay_all_datasets_irregular(
     save_path=S03_FIG / "irregular_abstract_overlay.png",
 )
 
+# ── MAE comparison: full data vs irregular schedule ──────────────────────────
+print("\n" + "=" * 60)
+print("MAE Comparison: Full Data vs Irregular Schedule")
+print("=" * 60)
+
+import numpy as np
+
+ensemble_tuning = load_pkl('ensemble_tuning.pkl', subdir=S01_PKL)
+
+dt_kf = 0.01
+
+def _mae_per_state(traj, exp_meas, state_names):
+    """Compute MAE per state between trajectory and experimental measurements."""
+    exp_vals   = exp_meas.iloc[:, 1:9].values
+    time_hours = exp_meas['Time (hours)'].values
+    time_idx   = [min(round(t / dt_kf), traj.shape[0] - 1) for t in time_hours]
+    pred       = traj[time_idx]
+    mae = {}
+    for i, sname in enumerate(state_names):
+        obs   = exp_vals[:, i]
+        valid = ~np.isnan(obs)
+        if valid.any():
+            mae[sname] = float(np.mean(np.abs(pred[valid, i] - obs[valid])))
+        else:
+            mae[sname] = float('nan')
+    return mae
+
+all_mae_full      = {}
+all_mae_irregular = {}
+
+for ds_name in BEST_ENSEMBLE_SIZES:
+    best_n    = BEST_ENSEMBLE_SIZES[ds_name]
+    exp_meas  = datasets[ds_name]['exp_meas']
+    traj_full = ensemble_tuning[ds_name][best_n]
+    traj_irr  = sim_irregular[ds_name]
+
+    all_mae_full[ds_name]      = _mae_per_state(traj_full, exp_meas, STATE_NAMES)
+    all_mae_irregular[ds_name] = _mae_per_state(traj_irr,  exp_meas, STATE_NAMES)
+
+# Print comparison table
+ds_order = [
+    'CHO_T127_flask_PMJ', 'CHO_T127_SNS_36.5', 'CHO_T127_SNS_32',
+    'CHO_GS46_F_C_Inv', 'CHO_GS46_F_all', 'CHO_GS46_F_all_pl40',
+]
+short_names = {
+    'CHO_T127_flask_PMJ':  'A-Flask',
+    'CHO_T127_SNS_36.5':   'A-Bio36',
+    'CHO_T127_SNS_32':     'A-Bio32',
+    'CHO_GS46_F_C_Inv':    'B-FeedC',
+    'CHO_GS46_F_all':      'B-FeedU',
+    'CHO_GS46_F_all_pl40': 'B-FeedU+',
+}
+
+for sname in STATE_NAMES:
+    print(f"\n--- {sname} ---")
+    print(f"{'Schedule':<12}", end="")
+    for ds_name in ds_order:
+        print(f"  {short_names[ds_name]:>10}", end="")
+    print()
+    print(f"{'Daily':<12}", end="")
+    for ds_name in ds_order:
+        print(f"  {all_mae_full[ds_name][sname]:>10.4g}", end="")
+    print()
+    print(f"{'Irregular':<12}", end="")
+    for ds_name in ds_order:
+        print(f"  {all_mae_irregular[ds_name][sname]:>10.4g}", end="")
+    print()
+
+save_pkl(all_mae_full,      'mae_full_data.pkl')
+save_pkl(all_mae_irregular, 'mae_irregular.pkl')
+
 print("\nStep 3 complete.")

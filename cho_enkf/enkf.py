@@ -235,14 +235,14 @@ def run_enkf_with_tuning(datasets: dict, dataset_noise_variances: dict,
 
     Returns
     -------
-    ensemble_tuning, rmse_results, computation_times,
+    ensemble_tuning, mae_results, computation_times,
     PX_records_all, para_records_all,
     X_forecast_for_parameters_records_all,
     X_forecast_for_states_records_all,
     X_posterior_records_all, Z_all
     """
     ensemble_tuning = {}
-    rmse_results    = {}
+    mae_results     = {}
     computation_times = {}
     PX_records_all  = {}
     para_records_all = {}
@@ -267,13 +267,13 @@ def run_enkf_with_tuning(datasets: dict, dataset_noise_variances: dict,
         time_exp    = data["exp_meas"]["Time (hours)"].values
         time_indices = np.clip((time_exp * 100).astype(int), 0, len(Fin) - 1)
 
-        for key in ['ensemble_tuning', 'rmse_results', 'computation_times',
+        for key in ['ensemble_tuning', 'mae_results', 'computation_times',
                     'PX_records_all', 'para_records_all', 'Xf_para_all',
                     'Xf_state_all', 'Xpost_all', 'Z_all']:
             locals()[key].setdefault(dataset_name, {})
 
         ensemble_tuning[dataset_name]  = {}
-        rmse_results[dataset_name]     = {}
+        mae_results[dataset_name]      = {}
         computation_times[dataset_name] = {}
         PX_records_all[dataset_name]   = {}
         para_records_all[dataset_name] = {}
@@ -337,8 +337,8 @@ def run_enkf_with_tuning(datasets: dict, dataset_noise_variances: dict,
 
             set_EnKF = np.array(set_EnKF)
             ensemble_tuning[dataset_name][ens_size]  = set_EnKF
-            rmse_results[dataset_name][ens_size]      = np.sqrt(
-                (set_EnKF[time_indices] - data["exp_meas"].iloc[:, 1:9].values) ** 2)
+            mae_results[dataset_name][ens_size]       = np.abs(
+                set_EnKF[time_indices] - data["exp_meas"].iloc[:, 1:9].values)
             computation_times[dataset_name][ens_size] = time.time() - t0
             para_records_all[dataset_name][ens_size]  = enkf.para_records
             Xf_para_all[dataset_name][ens_size]       = enkf.X_forecast_for_parameters_records
@@ -347,7 +347,7 @@ def run_enkf_with_tuning(datasets: dict, dataset_noise_variances: dict,
             Z_all[dataset_name][ens_size]             = enkf.Z
             PX_records_all[dataset_name][ens_size]    = enkf.PX_records
 
-    return (ensemble_tuning, rmse_results, computation_times,
+    return (ensemble_tuning, mae_results, computation_times,
             PX_records_all, para_records_all,
             Xf_para_all, Xf_state_all, Xpost_all, Z_all)
 
