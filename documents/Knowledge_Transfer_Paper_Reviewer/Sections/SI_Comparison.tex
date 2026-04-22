@@ -1,0 +1,40 @@
+\label{SI:comparison}
+{\color{blue}
+Figure~\ref{fig:enkf_vs_reparam} compares the EnKF state estimation trajectory against a reparametrised open-loop simulation and the nominal Kotidis model for Cell Line B Feed C. The reparametrised model uses dataset-specific parameters obtained by offline optimisation on the full dataset, while the EnKF starts from the Cell Line A base parameters and adapts recursively as measurements become available. Table~\ref{tab:enkf_vs_reparam} reports the per-state MAE for the EnKF and the reparametrised model.
+}
+
+\begin{table}[ht]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\small
+\setlength{\tabcolsep}{5pt}
+\rowcolors{3}{gray!15}{white}
+\caption{\rev{Per-state MAE for the EnKF and the reparametrised open-loop model on Cell Line B Feed C. The reparametrised model uses parameters optimised offline on the full dataset; the EnKF adapts recursively from Cell Line A base parameters without dataset-specific reparametrisation.}}
+\label{tab:enkf_vs_reparam}
+\newlength{\compColW}\setlength{\compColW}{3.2cm}
+\begin{tabular}{|l|p{\compColW}|p{\compColW}|}
+\hline
+\rowcolor{white}
+\textbf{State} & \multicolumn{2}{c|}{\textbf{MAE}} \\
+\hline
+\rowcolor{white}
+ & \centering \textbf{EnKF} & \centering\arraybackslash \textbf{Reparametrised Model} \\
+\hline
+Xv (cell\,L$^{-1}$)  & \centering $1.436\times10^{9}$ & \centering\arraybackslash $1.142\times10^{9}$ \\
+mAb (mg~L$^{-1}$)     & \centering $192.4$             & \centering\arraybackslash $139.6$ \\
+Glc (mM)              & \centering $2.964$             & \centering\arraybackslash $1.982$ \\
+Amm (mM)              & \centering $0.4532$            & \centering\arraybackslash $0.6986$ \\
+Gln (mM)              & \centering $0.2238$            & \centering\arraybackslash $0.156$ \\
+Lac (mM)              & \centering $2.069$             & \centering\arraybackslash $3.201$ \\
+Glu (mM)              & \centering $0.3647$            & \centering\arraybackslash $0.3787$ \\
+Asn (mM)              & \centering $0.4396$            & \centering\arraybackslash $0.3324$ \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Figs/enkf_vs_reparametrised.png}
+    \caption{\rev{Comparison of EnKF state estimation (solid green), reparametrised open-loop simulation (dashed blue), and nominal Kotidis \textit{et al.}~\cite{Kotidis2019Model-basedCulture} model (solid red) against experimental measurements (markers, $\pm$standard deviation) for Cell Line B Feed C. The reparametrised model uses parameters optimised offline on the full dataset; the EnKF begins from Cell Line A base parameters and adapts recursively without dataset-specific reparametrisation.}}
+    \label{fig:enkf_vs_reparam}
+\end{figure}
