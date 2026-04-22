@@ -21,7 +21,7 @@ from pathlib import Path
 
 # ─── Helper ─────────────────────────────────────────────────────────────────
 
-def _savefig(fig, save_path, dpi=600):
+def _savefig(fig, save_path, dpi=300):
     if save_path is not None:
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
@@ -482,7 +482,7 @@ def plot_parameter_comparison_across_datasets(dataset_names, ensemble_sizes,
     fig.legend(by_label.values(), by_label.keys(), loc='lower center',
                ncol=len(dataset_names), frameon=False,
                bbox_to_anchor=(0.5, -0.1), prop={'size': 16, 'weight': 'bold'})
-    _savefig(fig, save_path, dpi=600)
+    _savefig(fig, save_path)
 
 
 # ─── Posterior correlation heatmap ───────────────────────────────────────────
@@ -510,7 +510,7 @@ def plot_posterior_param_correlation(corr_matrices, best_ensemble_sizes,
         ax.tick_params(axis='y', labelsize=7, rotation=0)
 
     plt.tight_layout()
-    _savefig(fig, save_path, dpi=600)
+    _savefig(fig, save_path)
 
 
 # ─── Prior width sensitivity ─────────────────────────────────────────────────
@@ -552,7 +552,7 @@ def plot_prior_width_sensitivity_rmse(prior_width_rmse, prior_width_scales,
     for spine in ax.spines.values():
         spine.set_linewidth(2)
     plt.tight_layout()
-    _savefig(fig, save_path, dpi=600)
+    _savefig(fig, save_path)
 
 
 def plot_prior_width_state_profiles(prior_width_sim, prior_width_scales,
@@ -650,7 +650,7 @@ def plot_prior_width_state_profiles(prior_width_sim, prior_width_scales,
                    fontsize=14, frameon=False, bbox_to_anchor=(0.5, -0.01),
                    prop={'weight': 'bold'})
         sp = (Path(save_dir) / f"prior_width_profiles_{ds_name}.png") if save_dir else None
-        _savefig(fig, sp, dpi=600)
+        _savefig(fig, sp)
 
 
 # ─── Prior covariance stability heatmap ──────────────────────────────────────
@@ -728,7 +728,7 @@ def plot_stability_heatmap(stability_flags, prior_width_scales,
                prop={'weight': 'bold'})
 
     fig.tight_layout(rect=[0, 0.04, 1, 1])
-    _savefig(fig, save_path, dpi=600)
+    _savefig(fig, save_path)
 
 
 # ─── Parameter mean sensitivity (±%) ─────────────────────────────────────────
@@ -873,7 +873,7 @@ def plot_param_sensitivity_comparison(datasets, perturb_sims, sim_baseline,
                    bbox_to_anchor=(0.5, -0.01), fontsize=14, frameon=False,
                    prop={'weight': 'bold'})
         sp = (Path(save_dir) / f"param_sensitivity_{ds_name}.png") if save_dir else None
-        _savefig(fig, sp, dpi=600)
+        _savefig(fig, sp)
 
 
 # ─── EnKF vs reparametrised model comparison ─────────────────────────────────
@@ -968,7 +968,7 @@ def plot_enkf_vs_reparametrised(dataset, enkf_traj, reparam_sim, nominal_sim,
     fig.legend(handles=legend_handles, loc='lower center', ncol=4,
                bbox_to_anchor=(0.5, -0.01), fontsize=14, frameon=False,
                prop={'weight': 'bold'})
-    _savefig(fig, save_path, dpi=600)
+    _savefig(fig, save_path)
 
 
 # ─── Irregular measurement plots ─────────────────────────────────────────────
@@ -1046,7 +1046,7 @@ def plot_all_datasets_state_profiles(datasets, simulation_trajectories_irregular
                    markersize=8, linestyle='None',
                    label='Irregular Interval Experimental Data'),
             Line2D([0], [0], color=dataset_colours[ds_name], lw=3,
-                   label='EnKF'),
+                   label='EnKF with Irregular Measurement Update'),
         ]
         fig.legend(handles=static_leg, loc='lower center',
                    ncol=len(static_leg), bbox_to_anchor=(0.5, -0.01),
