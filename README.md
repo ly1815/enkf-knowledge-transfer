@@ -24,7 +24,6 @@ enkf-knowledge-transfer/
 │   ├── data_loader.py                 # Load Excel datasets (3 sheets each)
 │   ├── model.py                       # Mechanistic ODE model (RK4/LSODA)
 │   ├── enkf.py                        # EnKF classes and runner functions
-│   ├── ukf.py                         # Dual UKF implementation
 │   ├── analysis.py                    # R², convergence, correlation analysis
 │   ├── plotting.py                    # Publication-quality figure generation
 │   └── io_utils.py                    # Pickle I/O and path management
@@ -35,8 +34,7 @@ enkf-knowledge-transfer/
 │   ├── 03_irregular.py                # Irregular measurement schedule (48/72 h)
 │   ├── 04_priorcov_sensitivity.py     # Prior covariance width sensitivity
 │   ├── 05_priormean_sensitivity.py    # Prior mean perturbation sensitivity
-│   ├── 06_comparisons.py             # EnKF vs reparametrised model
-│   └── 07_ukf.py                      # UKF vs EnKF comparison
+│   └── 06_comparisons.py              # EnKF vs reparametrised model
 │
 ├── data/                              # 6 CHO experimental datasets (Excel)
 ├── results/                           # Generated outputs (gitignored)
@@ -82,7 +80,6 @@ poetry run python scripts/03_irregular.py              # ~30-60 min
 poetry run python scripts/04_priorcov_sensitivity.py   # ~2-4 h
 poetry run python scripts/05_priormean_sensitivity.py  # ~2-4 h
 poetry run python scripts/06_comparisons.py            # < 5 min
-poetry run python scripts/07_ukf.py                    # variable
 ```
 
 Outputs are saved to `results/{RUN_NAME}/` (controlled by `RUN_NAME` in `cho_enkf/config.py`).
