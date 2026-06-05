@@ -1,256 +1,106 @@
-# EnKF with Knowledge Transfer for CHO Bioprocess Modelling
+# Model-Enabled Knowledge Transfer across Cell Lines, Culture Scales and Conditions
 
-Reproducible research code accompanying the paper:
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-2025.11.30.691385-b31b1b.svg)](https://www.biorxiv.org/content/10.64898/2025.11.30.691385v1)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **[Paper title]**
-> [Authors]
-> [Journal, Year]
+This repository contains the code accompanying the preprint:
 
-This repository implements an **Ensemble Kalman Filter (EnKF)** for dual state and parameter estimation in Chinese Hamster Ovary (CHO) cell culture bioprocesses, with cross-condition knowledge transfer.
-
----
+> **Model-Enabled Knowledge Transfer across Cell Lines, Culture Scales and Conditions**
+> Luxi Yu, Antonio del Rio Chanona, Cleo Kontoravdi
+> *bioRxiv* (2025). doi: [10.64898/2025.11.30.691385](https://doi.org/10.64898/2025.11.30.691385)
 
 ## Overview
 
-The EnKF is applied to six CHO cell culture datasets covering two cell lines (T127 and GS46), multiple bioreactor scales, and different feeding strategies. The workflow:
+We present an **Ensemble Kalman Filter (EnKF)** framework for dual state and parameter estimation in Chinese Hamster Ovary (CHO) cell culture bioprocesses. The EnKF recursively assimilates process measurements to update uncertain kinetic parameters and predict system states, enabling a mechanistic model calibrated on one system to be transferred to new cell lines, scales, and operating conditions — **without reparametrisation and using only a single experimental dataset**.
 
-1. Integrates the bioreactor volume ODE
-2. Runs a nominal forward simulation with literature parameters (Kotidis et al. 2019)
-3. Tunes ensemble size by sweeping RMSE across sizes `[10, 25, 50, 75]`
-4. Performs long-term state prediction using the best ensemble size
-5. Tests robustness with an irregular 48/72 h measurement schedule
-6. Quantifies prior width sensitivity and ±20% mean parameter sensitivity
-
----
+The framework is evaluated across six CHO cell experimental datasets differing in scale, cell line, temperature, and feeding strategy, demonstrating accurate reconstruction of system dynamics and progressive improvement in long-term predictions as new data become available.
 
 ## Repository Structure
 
 ```
-BiotechBioeng/
+enkf-knowledge-transfer/
+├── cho_enkf/                          # Python package
+│   ├── config.py                      # Constants, parameters, noise definitions
+│   ├── data_loader.py                 # Load Excel datasets (3 sheets each)
+│   ├── model.py                       # Mechanistic ODE model (RK4/LSODA)
+│   ├── enkf.py                        # EnKF classes and runner functions
+│   ├── ukf.py                         # Dual UKF implementation
+│   ├── analysis.py                    # R², convergence, correlation analysis
+│   ├── plotting.py                    # Publication-quality figure generation
+│   └── io_utils.py                    # Pickle I/O and path management
 │
-├── cho_enkf/                   # Python package
-│   ├── config.py               # All constants: RUN_NAME, paths, parameters, noise
-│   ├── data_loader.py          # Load Excel datasets
-│   ├── model.py                # Volume integration, kinetic model (ODE step)
-│   ├── enkf.py                 # EnKF classes + all runner functions
-│   ├── analysis.py             # R², convergence tables, correlation matrix
-│   ├── plotting.py             # All publication-quality figure functions
-│   └── io_utils.py             # Pickle save/load, path construction
+├── scripts/                           # Numbered execution pipeline
+│   ├── 01_ensemble_tuning.py          # Sweep ensemble sizes
+│   ├── 02_longterm_pred.py            # Long-term prediction
+│   ├── 03_irregular.py                # Irregular measurement schedule (48/72 h)
+│   ├── 04_priorcov_sensitivity.py     # Prior covariance width sensitivity
+│   ├── 05_priormean_sensitivity.py    # Prior mean perturbation sensitivity
+│   ├── 06_comparisons.py             # EnKF vs reparametrised model
+│   └── 07_ukf.py                      # UKF vs EnKF comparison
 │
-├── scripts/                    # Numbered execution pipeline
-│   ├── 01_ensemble_tuning.py   # Load data → run EnKF sweep → save pkl
-│   ├── 02_longterm_pred.py     # Long-term forecasting with best ensemble size
-│   ├── 03_irregular.py         # EnKF with 48/72 h irregular measurements
-│   ├── 04_sensitivity.py       # Prior width + ±% parameter sensitivity
-│   └── 05_comparisons.py       # EnKF vs reparametrised model comparison
-│
-├── data/                       # CHO experimental datasets (Excel)
-│   ├── CHO_T127_flask_PMJ.xlsx
-│   ├── CHO_T127_SNS_36.5.xlsx
-│   ├── CHO_T127_SNS_32.xlsx
-│   ├── CHO_GS46_F_C_Inv.xlsx
-│   ├── CHO_GS46_F_all.xlsx
-│   └── CHO_GS46_F_all_pl40.xlsx
-│
-├── results/                    # Generated outputs (gitignored)
-│   └── {RUN_NAME}/
-│       ├── run_notes.txt       # Auto-created on first run — fill in manually
-│       ├── 01_ensemble_tuning/
-│       │   ├── pkl/
-│       │   └── figures/
-│       ├── 02_longterm_pred/
-│       │   ├── pkl/
-│       │   └── figures/
-│       ├── 03_irregular/
-│       │   ├── pkl/
-│       │   └── figures/
-│       ├── 04_sensitivity/
-│       │   ├── pkl/
-│       │   └── figures/
-│       └── 05_comparisons/
-│           ├── pkl/
-│           └── figures/
-│
-├── original.ipynb              # Original monolithic notebook (reference only)
-├── pyproject.toml
-├── poetry.lock
-└── README.md
+├── data/                              # 6 CHO experimental datasets (Excel)
+├── results/                           # Generated outputs (gitignored)
+└── pyproject.toml                     # Poetry project metadata
 ```
-
----
-
-## Quick Start
-
-### 1. Install dependencies
-
-```bash
-# Install Poetry (if not already installed)
-pip install poetry
-
-# Create virtual environment and install all dependencies
-poetry install
-
-# Activate the environment
-poetry shell
-# OR: source .venv/Scripts/activate   (Windows)
-#     source .venv/bin/activate        (Linux/macOS)
-```
-
-### 2. Set the run name (optional)
-
-Edit `cho_enkf/config.py`:
-```python
-RUN_NAME = "run_v1"   # all outputs go to results/run_v1/
-```
-
-Change this string to version a new experiment. Old results are preserved.
-
-### 3. Run the pipeline
-
-Each script saves results to its own subfolder. Set `LOAD_FROM_PKL = True` (default) to skip recomputation and regenerate figures only.
-
-```bash
-# Step 1 (~2–4 h): ensemble tuning
-poetry run python scripts/01_ensemble_tuning.py
-
-# Step 2 (~30–60 min): long-term prediction with best ensemble size
-poetry run python scripts/02_longterm_pred.py
-
-# Step 3 (~30–60 min): irregular measurement schedule
-poetry run python scripts/03_irregular.py
-
-# Step 4 (~2–4 h): sensitivity analyses (prior width + ±% params)
-poetry run python scripts/04_sensitivity.py
-
-# Step 5 (< 5 min): EnKF vs reparametrised model comparison
-poetry run python scripts/05_comparisons.py
-```
-
-> **Tip**: Each script has `LOAD_FROM_PKL = True` at the top. With this set, scripts load
-> saved pkl files and skip all computation — useful for regenerating figures without re-running the EnKF.
-
-### 4. Find outputs
-
-```
-results/{RUN_NAME}/
-├── run_notes.txt               # Fill in to document what changed in this run
-├── 01_ensemble_tuning/pkl|figures/
-├── 02_longterm_pred/pkl|figures/
-├── 03_irregular/pkl|figures/
-├── 04_sensitivity/pkl|figures/
-└── 05_comparisons/pkl|figures/
-```
-
----
 
 ## Datasets
 
-| Dataset | Cell Line | Condition |
-|---|---|---|
-| `CHO_T127_flask_PMJ` | T127 (Cell Line A) | Shake flask, 36.5°C |
-| `CHO_T127_SNS_36.5` | T127 (Cell Line A) | Bioreactor, 36.5°C |
-| `CHO_T127_SNS_32` | T127 (Cell Line A) | Bioreactor, 32°C |
-| `CHO_GS46_F_C_Inv` | GS46 (Cell Line B) | Feed C |
-| `CHO_GS46_F_all` | GS46 (Cell Line B) | Feed U |
-| `CHO_GS46_F_all_pl40` | GS46 (Cell Line B) | Feed U +40% |
+| # | Cell Line | Type | Volume (mL) | Temp (°C) | Feed |
+|---|-----------|------|-------------|-----------|------|
+| 1 | A (CHO-T127) | Shake flask | 100 | 36.5 | Feed C |
+| 2 | A (CHO-T127) | Bioreactor | 900 | 36.5 | Feed C |
+| 3 | A (CHO-T127) | Bioreactor | 900 | 32* | Feed C |
+| 4 | B (CHO-GS46) | Shake flask | 50 | 36.5 | Feed C |
+| 5 | B (CHO-GS46) | Shake flask | 50 | 36.5 | Feed U |
+| 6 | B (CHO-GS46) | Shake flask | 50 | 36.5 | Feed U +40% |
 
-Each Excel file contains three sheets: `schedule` (feed schedule), `feed` (feed concentrations), `exp_meas` (measured state variables ± std).
+*Temperature downshift from 36.5°C to 32°C on day 6.
 
----
+Each Excel file contains three sheets: `schedule` (feed timing), `feed` (feed concentrations), and `exp_meas` (measured state variables with standard deviations).
 
 ## State Variables
 
-| Symbol | Description | Unit |
-|---|---|---|
-| Xv | Viable cell density | cell L⁻¹ |
-| mAb | Monoclonal antibody titre | mg L⁻¹ |
-| Glc | Glucose | mM |
-| Amm | Ammonia | mM |
-| Gln | Glutamine | mM |
-| Lac | Lactate | mM |
-| Glu | Glutamate | mM |
-| Asn | Asparagine | mM |
+Xv (viable cell density), mAb (antibody titre), Glc (glucose), Amm (ammonia), Gln (glutamine), Lac (lactate), Glu (glutamate), Asn (asparagine).
 
----
+## Quick Start
 
-## Key Configuration (`cho_enkf/config.py`)
+### Install dependencies
 
-| Variable | Description |
-|---|---|
-| `RUN_NAME` | Experiment version tag; controls output folder |
-| `TUNING_ENSEMBLE_SIZES` | Sizes swept in Step 1 (default `[10, 25, 50, 75]`) |
-| `BEST_ENSEMBLE_SIZES` | Best size per dataset (set after reviewing Step 1 results) |
-| `MEAN_PARAMETERS` | Nominal model parameters from Kotidis et al. 2019 |
-| `PARAMETERS_ENSEMBLE_COVARIANCE` | Prior width for each parameter |
-| `DATASET_NOISE_VARIANCES` | Process (Q) and observation (R) noise per dataset |
-| `KQ_DICT` / `KR_DICT` | Scaling factors for Q and R matrices |
-| `PRIOR_WIDTH_SCALES` | Scales tested in sensitivity analysis |
-| `PARAM_SENS_PERTURBATIONS` | Fractions for ±% sensitivity (default `[0.10, 0.20, 0.30]`) |
+```bash
+pip install poetry
+poetry install
+```
 
----
+### Run the pipeline
 
-## Package API Summary
+Scripts should be run in numbered order. Each saves intermediate `.pkl` files so figures can be regenerated without re-running the EnKF (set `LOAD_FROM_PKL = True` at the top of each script).
 
-### `cho_enkf.enkf`
-- `run_enkf_with_tuning(...)` — sweep ensemble sizes
-- `enkf_long_pred_best_ensemble_size(...)` — long-term prediction
-- `run_pipeline_irregular_48_72(...)` — irregular measurement schedule
-- `run_enkf_with_mean_params(...)` — parameter sensitivity runs
+```bash
+poetry run python scripts/01_ensemble_tuning.py       # ~2-4 h
+poetry run python scripts/02_longterm_pred.py          # ~30-60 min
+poetry run python scripts/03_irregular.py              # ~30-60 min
+poetry run python scripts/04_priorcov_sensitivity.py   # ~2-4 h
+poetry run python scripts/05_priormean_sensitivity.py  # ~2-4 h
+poetry run python scripts/06_comparisons.py            # < 5 min
+poetry run python scripts/07_ukf.py                    # variable
+```
 
-### `cho_enkf.analysis`
-- `compute_r2_table(...)` — R² for all datasets
-- `compute_overall_convergence_table(...)` — parameter convergence %
-- `get_posterior_param_matrix(...)` — posterior ensemble for correlation
-
-### `cho_enkf.plotting`
-- `plot_rmse_variance_and_computation_time_all(...)` — tuning figure
-- `overlay_T127_subplots_with_errorbars(...)` — T127 comparison
-- `overlay_gs46_subplots_with_errorbars(...)` — GS46 comparison
-- `plot_longterm_pred_ensemble_simulation_errorbar(...)` — long-term pred
-- `plot_parameter_comparison_across_datasets(...)` — cross-dataset params
-- `plot_posterior_param_correlation(...)` — correlation heatmap
-- `plot_prior_width_sensitivity_rmse(...)` — prior width RMSE bar
-- `plot_param_sensitivity_comparison(...)` — ±20% sensitivity
-
----
-
-## Dependencies
-
-| Package | Purpose |
-|---|---|
-| numpy, scipy | Numerical computation, ODE integration |
-| pandas | Data loading and tabular analysis |
-| matplotlib, seaborn | Plotting |
-| openpyxl | Reading Excel files |
-| tqdm | Progress bars |
-| jupyter, ipykernel | Interactive exploration (optional) |
-
----
-
-## Nominal Model
-
-Parameters from **Kotidis et al. (2019)** for CHO-T127 shake flask cultures.
-The model describes growth, death, and metabolite dynamics via Monod-type kinetics,
-with ammonia and lactate inhibition, and a full yield-based metabolic network.
-
----
+Outputs are saved to `results/{RUN_NAME}/` (controlled by `RUN_NAME` in `cho_enkf/config.py`).
 
 ## Citation
 
 If you use this code, please cite:
 
 ```bibtex
-@article{[key],
-  title   = {[Title]},
-  author  = {[Authors]},
-  journal = {[Journal]},
-  year    = {[Year]},
-  doi     = {[DOI]}
+@article{yu2025model,
+  title     = {Model-Enabled Knowledge Transfer across Cell Lines, Culture Scales and Conditions},
+  author    = {Yu, Luxi and del Rio Chanona, Antonio and Kontoravdi, Cleo},
+  journal   = {bioRxiv},
+  year      = {2025},
+  doi       = {10.64898/2025.11.30.691385}
 }
 ```
 
----
-
 ## License
 
-[License]
+This project is licensed under the [MIT License](LICENSE).
