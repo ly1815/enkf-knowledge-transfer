@@ -1,13 +1,13 @@
 # Model-Enabled Knowledge Transfer across Cell Lines, Culture Scales and Conditions
 
-[![bioRxiv](https://img.shields.io/badge/bioRxiv-2025.11.30.691385-b31b1b.svg)](https://www.biorxiv.org/content/10.64898/2025.11.30.691385v1)
+[![DOI](https://img.shields.io/badge/DOI-10.1002/bit.70269-blue.svg)](https://doi.org/10.1002/bit.70269)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-This repository contains the code accompanying the preprint:
+This repository contains the code accompanying the paper:
 
 > **Model-Enabled Knowledge Transfer across Cell Lines, Culture Scales and Conditions**
 > Luxi Yu, Antonio del Rio Chanona, Cleo Kontoravdi
-> *bioRxiv* (2025). doi: [10.64898/2025.11.30.691385](https://doi.org/10.64898/2025.11.30.691385)
+> *Biotechnology and Bioengineering* (2026). doi: [10.1002/bit.70269](https://doi.org/10.1002/bit.70269)
 
 ## Overview
 
@@ -89,12 +89,14 @@ Outputs are saved to `results/{RUN_NAME}/` (controlled by `RUN_NAME` in `cho_enk
 If you use this code, please cite:
 
 ```bibtex
-@article{yu2025model,
+@article{yu2026model,
   title     = {Model-Enabled Knowledge Transfer across Cell Lines, Culture Scales and Conditions},
   author    = {Yu, Luxi and del Rio Chanona, Antonio and Kontoravdi, Cleo},
-  journal   = {bioRxiv},
-  year      = {2025},
-  doi       = {10.64898/2025.11.30.691385}
+  journal   = {Biotechnology and Bioengineering},
+  volume    = {0},
+  pages     = {e70269},
+  year      = {2026},
+  doi       = {10.1002/bit.70269}
 }
 ```
 
