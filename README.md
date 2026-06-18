@@ -100,6 +100,10 @@ If you use this code, please cite:
 }
 ```
 
+## Supplementary Information
+
+The supplementary information for the paper is available in this repository: [Supplementary_Information_Model_Enabled_Knowledge_Transfer_across_Cell_Lines__Culture_Scales_and_Conditions.pdf](Supplementary_Information_Model_Enabled_Knowledge_Transfer_across_Cell_Lines__Culture_Scales_and_Conditions.pdf)
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
