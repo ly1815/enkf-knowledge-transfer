@@ -1,7 +1,6 @@
 [project]
 name = "enkf_knowledge_transfer"
 version = "0.1.0"
-package-mode = false
 description = ""
 authors = [
     {name = "Your Name",email = "you@example.com"}
@@ -21,6 +20,9 @@ dependencies = [
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
 
 [dependency-groups]
 dev = [
