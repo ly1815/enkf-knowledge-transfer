@@ -34,3 +34,7 @@ documents/
 # Published article PDF (not needed on GitHub)
 Biotech*Bioengineering*Culture Scales and Conditions.pdf
 
+# Generated GS46 parameter deliverable (regenerate via scripts/gs46_params_only.py)
+GS46_EnKF_parameters.xlsx
+GS46_figures/
+
